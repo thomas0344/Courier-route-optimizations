@@ -1,0 +1,418 @@
+{% extends "agent/base.html" %} {% block title %}Route Optimization - ML Enhanced{% endblock %} {% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Route Optimization</h1>
+        <p class="text-muted mb-0">TSP Algorithm with ML-Enhanced Carbon Emission Analysis</p>
+    </div>
+    <a href="/agent/assignedroutes" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Routes
+    </a>
+</div>
+
+<!-- Route Info & Actions -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Route Information</h5>
+            </div>
+            <div class="card-body">
+                <h4 id="routeName">Loading...</h4>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Start:</strong> <span id="startLocation">-</span></p>
+                        <p class="mb-2"><strong>Stops:</strong> <span id="totalStops" class="badge bg-info">0</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Status:</strong> <span id="routeStatus"></span></p>
+                        <p class="mb-2"><strong>Vehicle:</strong> <span id="vehicleInfo">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Actions</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-success btn-lg w-100 mb-3" onclick="optimizeRoute()" id="optimizeBtn">
+                    <i class="fas fa-magic me-2"></i>Optimize Route
+                </button>
+                <button class="btn btn-primary w-100" onclick="startNavigation()" id="navBtn" disabled>
+                    <i class="fas fa-directions me-2"></i>Start Navigation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optimization Results -->
+<div id="optimizationResults" style="display:none;">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h6>Optimal Distance</h6>
+                    <h3 id="optimalDistance">0 km</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h6>Paths Evaluated</h6>
+                    <h3 id="pathsEvaluated">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <h6>Segments</h6>
+                    <h3 id="totalSegments">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h6>CO₂ Emission</h6>
+                    <h3 id="carbonEmission">0 kg</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-map me-2"></i>Optimized Route Map</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="routeMap" style="height:600px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list-ol me-2"></i>Optimized Sequence</h5>
+                </div>
+                <div class="card-body" style="max-height:600px;overflow-y:auto;">
+                    <div id="optimizedSequence"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-route me-2"></i>Route Breakdown & Carbon Footprint</h5>
+                </div>
+                <div class="card-body">
+                    <div id="segmentDistances"></div>
+
+                    <!-- Carbon Emission Details -->
+                    <div id="carbonDetails" class="mt-4" style="display:none;">
+                        <hr>
+                        <h6 class="text-success mb-3"><i class="fas fa-leaf me-2"></i>Carbon Emission Analysis</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-light">
+                                    <strong>Vehicle Details:</strong><br>
+                                    <i class="fas fa-truck me-2"></i> Size Class: <span id="vehicleSize" class="badge bg-secondary">-</span><br>
+                                    <i class="fas fa-calendar me-2"></i> Vehicle Age: <span id="vehicleAge">-</span> years<br>
+                                    <i class="fas fa-gas-pump me-2"></i> Fuel Type: <span id="fuelType">-</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-light">
+                                    <strong>Emission Metrics:</strong><br>
+                                    <i class="fas fa-smog me-2"></i> CO₂ per km: <span id="co2PerKm" class="badge bg-warning text-dark">-</span><br>
+                                    <i class="fas fa-calculator me-2"></i> Formula: Distance × CO₂/km<br>
+                                    <i class="fas fa-tree me-2"></i> Trees to offset: <span id="treesNeeded" class="badge bg-success">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-success">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0"><i class="fas fa-leaf me-2"></i>Total Carbon Footprint</h5>
+                                    <small>Based on ML-predicted vehicle emissions</small>
+                                </div>
+                                <h3 class="mb-0 text-success" id="totalCarbon">0 kg CO₂</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+    let routeMap, routeData, optimizationData, markers = [],
+        polylines = [],
+        currentRouteId;
+
+    function initMap() {
+        routeMap = L.map('routeMap').setView([10.1632, 76.6413], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(routeMap);
+    }
+
+    function loadRouteData() {
+        const rid = sessionStorage.getItem('optimizeRouteId');
+        if (!rid) {
+            alert('No route selected');
+            window.location.href = '/agent/assignedroutes';
+            return;
+        }
+        currentRouteId = rid;
+        fetch(`/agent/api/route-optimization-data/${rid}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    routeData = d;
+                    document.getElementById('routeName').textContent = d.route.route_name;
+                    document.getElementById('startLocation').textContent = d.route.start_location_name;
+                    document.getElementById('totalStops').textContent = d.stops.length;
+                    document.getElementById('routeStatus').innerHTML = getStatusBadge(d.route.status);
+                } else {
+                    alert('Error: ' + d.message);
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Error loading route');
+            });
+    }
+
+    function optimizeRoute() {
+        if (!currentRouteId) return;
+        const btn = document.getElementById('optimizeBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Optimizing with Carbon Analysis...';
+
+        fetch(`/agent/api/optimize-route-with-carbon/${currentRouteId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    optimizationData = d;
+
+                    // Display optimization results
+                    document.getElementById('optimalDistance').textContent = d.optimization_result.optimal_distance + ' km';
+                    document.getElementById('pathsEvaluated').textContent = d.optimization_result.evaluations;
+                    document.getElementById('totalSegments').textContent = d.segment_distances.length;
+
+                    // Display carbon emission
+                    const carbonKg = d.carbon_emission.total_carbon_kg;
+                    document.getElementById('carbonEmission').textContent = carbonKg + ' kg';
+
+                    displayOptimizedSequenceWithSave(d.optimized_sequence);
+                    displaySegmentDistancesWithCarbon(d.segment_distances, d.optimization_result.optimal_distance, d.carbon_emission);
+                    drawOptimizedRoute(d.optimized_sequence);
+
+                    document.getElementById('optimizationResults').style.display = 'block';
+                    document.getElementById('navBtn').disabled = false;
+                    document.getElementById('optimizationResults').scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                } else {
+                    alert('Error: ' + d.message);
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Optimization failed');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic me-2"></i>Optimize Route';
+            });
+    }
+
+    function displaySegmentDistancesWithCarbon(segs, totalDist, carbonData) {
+        const c = document.getElementById('segmentDistances');
+        c.innerHTML = '';
+
+        segs.forEach((sg, i) => {
+            const d = document.createElement('div');
+            d.className = 'alert alert-info d-flex justify-content-between mb-2';
+            d.innerHTML = `<span><strong>Segment ${i+1}:</strong> ${sg.from} → ${sg.to}</span><span class="badge bg-info">${sg.distance} km</span>`;
+            c.appendChild(d);
+        });
+
+        const td = document.createElement('div');
+        td.className = 'alert alert-success d-flex justify-content-between mb-0';
+        td.innerHTML = `<span><strong>TOTAL DISTANCE</strong></span><span class="badge bg-success fs-5">${totalDist} km</span>`;
+        c.appendChild(td);
+
+        // Display carbon details if available
+        if (carbonData && carbonData.has_prediction) {
+            document.getElementById('carbonDetails').style.display = 'block';
+            document.getElementById('vehicleSize').textContent = carbonData.size_class;
+            document.getElementById('vehicleAge').textContent = carbonData.vehicle_age;
+            document.getElementById('fuelType').textContent = optimizationData.route_info.fuel_type || 'Unknown';
+            document.getElementById('co2PerKm').textContent = carbonData.co2_g_per_km + ' g/km';
+            document.getElementById('totalCarbon').textContent = carbonData.total_carbon_kg + ' kg CO₂';
+
+            // Calculate trees needed (1 tree absorbs ~21 kg CO2/year)
+            const treesNeeded = Math.ceil(carbonData.total_carbon_kg / 21);
+            document.getElementById('treesNeeded').textContent = treesNeeded + ' trees/year';
+        }
+    }
+
+    function displayOptimizedSequenceWithSave(seq) {
+        const c = document.getElementById('optimizedSequence');
+        c.innerHTML = `
+        <button class="btn btn-primary w-100 btn-lg mb-3" id="saveOptBtn" onclick="saveOptimizationWithWaypoints()">
+            <i class="fas fa-save me-2"></i>Save Optimization + Calculate Waypoints
+        </button>
+        <div class="alert alert-info mb-3">
+            <small><i class="fas fa-info-circle me-2"></i>Save optimized route with ML-enhanced waypoints</small>
+        </div>
+    `;
+
+        seq.forEach((s, i) => {
+                    const isStart = s.is_start;
+                    const card = document.createElement('div');
+                    card.className = `card mb-3 border-start ${isStart?'border-success':'border-primary'} border-3`;
+                    card.innerHTML = `
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1">
+                            <span class="badge ${isStart?'bg-success':'bg-primary'} me-2">${isStart?'START':`Stop ${s.sequence}`}</span>
+                            ${s.name}
+                        </h6>
+                        ${s.address?`<p class="text-muted small mb-2">${s.address}</p>`:''}
+                        ${!isStart?`
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-info"><i class="fas fa-box me-1"></i>${s.goods_name}</span>
+                                <span class="badge bg-secondary"><i class="fas fa-weight-hanging me-1"></i>${s.goods_weight} kg</span>
+                            </div>
+                        `:''}
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="focusOnStop(${i})"><i class="fas fa-map-marker-alt"></i></button>
+                </div>
+            </div>
+        `;
+            c.appendChild(card);
+        });
+    }
+
+    function drawOptimizedRoute(seq) {
+        clearMap();
+        const pts = [];
+        seq.forEach((s, i) => {
+            pts.push([s.latitude, s.longitude]);
+            const isStart = s.is_start;
+            const icon = L.divIcon({
+                html: `<div style="background:${isStart?'#28a745':'#3498db'};color:white;border-radius:50%;width:${isStart?40:35}px;height:${isStart?40:35}px;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 2px 5px rgba(0,0,0,0.3);font-size:${isStart?11:14}px;">${isStart?'START':i}</div>`,
+                iconSize: [isStart ? 40 : 35, isStart ? 40 : 35]
+            });
+            const m = L.marker([s.latitude, s.longitude], {icon: icon})
+                .bindPopup(`<b>${isStart?'START: ':`Stop ${i}: `}${s.name}</b>`)
+                .addTo(routeMap);
+            markers.push(m);
+        });
+
+        if (pts.length > 1) {
+            const poly = L.polyline(pts, {color: '#27ae60', weight: 4, opacity: 0.7}).addTo(routeMap);
+            polylines.push(poly);
+            routeMap.fitBounds(poly.getBounds(), {padding: [50, 50]});
+        }
+    }
+
+    function saveOptimizationWithWaypoints() {
+        if (!currentRouteId || !optimizationData) {
+            alert('No data to save');
+            return;
+        }
+        const btn = document.getElementById('saveOptBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+        fetch(`/agent/api/save-optimized-route/${currentRouteId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({optimized_sequence: optimizationData.optimized_sequence})
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    alert(`✅ Success!\n\n• Saved ${d.stops_saved} optimized stops\n• ${d.segments_processed} segments processed`);
+                    btn.innerHTML = '<i class="fas fa-check me-2"></i>Saved Successfully';
+                    btn.classList.replace('btn-primary', 'btn-success');
+                } else {
+                    alert('Error: ' + d.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save me-2"></i>Save Optimization';
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Save failed');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save me-2"></i>Save Optimization';
+            });
+    }
+
+    function clearMap() {
+        markers.forEach(m => routeMap.removeLayer(m));
+        polylines.forEach(p => routeMap.removeLayer(p));
+        markers = [];
+        polylines = [];
+    }
+
+    function focusOnStop(i) {
+        if (optimizationData && optimizationData.optimized_sequence[i]) {
+            const s = optimizationData.optimized_sequence[i];
+            routeMap.setView([s.latitude, s.longitude], 15);
+            markers[i].openPopup();
+        }
+    }
+
+    function startNavigation() {
+        if (!optimizationData || !optimizationData.optimized_sequence) {
+            alert('Optimize route first');
+            return;
+        }
+        const fs = optimizationData.optimized_sequence.find(s => !s.is_start);
+        if (!fs) {
+            alert('No stops available');
+            return;
+        }
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${fs.latitude},${fs.longitude}`, '_blank');
+    }
+
+    function getStatusBadge(st) {
+        const c = {
+            pending: {class: 'bg-warning', text: 'Pending'},
+            in_progress: {class: 'bg-primary', text: 'In Progress'},
+            completed: {class: 'bg-success', text: 'Completed'}
+        };
+        const cfg = c[st] || {class: 'bg-secondary', text: st};
+        return `<span class="badge ${cfg.class}">${cfg.text}</span>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        loadRouteData();
+    });
+</script>
+{% endblock %}

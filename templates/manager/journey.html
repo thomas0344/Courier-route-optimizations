@@ -1,0 +1,746 @@
+{% extends "manager/base.html" %} {% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Route Assignment</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Assign New Route</h5>
+                        <form id="routeForm">
+                            <div class="form-group mb-3">
+                                <label for="routeName">Route Name *</label>
+                                <input type="text" class="form-control" id="routeName" name="name" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="agentSelect">Assign Agent *</label>
+                                <select class="form-control" id="agentSelect" name="agent_id" required>
+                                    <option value="">Select Agent</option>
+                                </select>
+                            </div>
+                            <!-- NEW: Vehicle Selection -->
+                            <div class="form-group mb-3">
+                                <label for="vehicleSelect">Assign Vehicle *</label>
+                                <select class="form-control" id="vehicleSelect" name="vehicle_id" required>
+                                    <option value="">Select Vehicle</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="startingLocation">Starting Location *</label>
+                                <select class="form-control" id="startingLocation" name="starting_location" required>
+                                    <option value="">Select Starting Location</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Assign Locations with Goods *</label>
+                                <small class="text-muted d-block mb-2">Click "Add Stop" to add delivery locations with
+                                    goods</small>
+                                <button type="button" class="btn btn-sm btn-success mb-2"
+                                    onclick="addLocationGoodsPair()">
+                                    <i class="fas fa-plus"></i> Add Stop
+                                </button>
+                                <div id="locationGoodsMapping" class="border rounded p-3"
+                                    style="max-height: 400px; overflow-y: auto;">
+                                    <!-- Location-Goods pairs will be loaded here -->
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="assignRoute()">
+                                <i class="fas fa-tasks"></i> Assign Route
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Route Map</h5>
+                        <div id="routeMap" class="map-container"></div>
+                        <div class="mt-3">
+                            <h6>Route Summary</h6>
+                            <div id="routeSummary" class="alert alert-info">
+                                <p class="mb-1"><strong>Starting Point:</strong> <span id="summaryStart">Not
+                                        selected</span></p>
+                                <p class="mb-1"><strong>Vehicle:</strong> <span id="summaryVehicle">Not selected</span>
+                                </p>
+                                <p class="mb-1"><strong>Delivery Stops:</strong> <span id="summaryStops">0</span></p>
+                                <p class="mb-0"><strong>Total Goods:</strong> <span id="summaryGoods">0</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Existing Routes</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Route Name</th>
+                                <th>Agent</th>
+                                <th>Vehicle</th>
+                                <th>Starting Location</th>
+                                <th>Stops</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routesTable">
+                            <!-- Routes will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Route Details Modal -->
+<div class="modal fade" id="routeDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Route Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="routeDetailsContent">
+                    <!-- Route details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+    let routeMap;
+    let routeMarkers = [];
+    let routePolyline = null;
+    let allLocations = [];
+    let allGoods = [];
+    let allVehicles = [];
+    let selectedLocationGoods = {};
+    let pairCounter = 0;
+
+    function initMap() {
+        routeMap = L.map('routeMap').setView([10.1632, 76.6413], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(routeMap);
+
+        loadLocations();
+        loadAgents();
+        loadVehicles();
+        loadRoutes();
+        loadGoods();
+    }
+
+    function loadLocations() {
+        fetch('/manager/locations/list')
+            .then(response => response.json())
+            .then(data => {
+                allLocations = data;
+                const startingLocationSelect = document.getElementById('startingLocation');
+                startingLocationSelect.innerHTML = '<option value="">Select Starting Location</option>';
+
+                data.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = location.id;
+                    option.textContent = location.name + ' (' + location.address + ')';
+                    option.dataset.lat = location.latitude;
+                    option.dataset.lng = location.longitude;
+                    startingLocationSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error loading locations:', error));
+    }
+
+    function loadAgents() {
+        const select = document.getElementById('agentSelect');
+        const currentSelection = select.value;
+
+        fetch('/manager/api/agents/list')
+            .then(response => response.json())
+            .then(data => {
+                select.innerHTML = '<option value="">Select Agent</option>';
+
+                data.forEach(agent => {
+                    const option = document.createElement('option');
+                    option.value = agent.id;
+
+                    let statusText = "";
+                    if (agent.simulation_status === 'in_progress' || agent.simulation_status === 'paused') {
+                        option.disabled = true;
+                        statusText = ` (Simulating - ${agent.current_route_name || 'Active Route'})`;
+                        option.classList.add('text-muted');
+                    }
+
+                    option.textContent = agent.username + statusText;
+                    select.appendChild(option);
+                });
+
+                // Restore selection if possible
+                if (currentSelection) {
+                    select.value = currentSelection;
+                }
+            })
+            .catch(error => console.error('Error loading agents:', error));
+    }
+
+    // Set up real-time polling
+    setInterval(loadAgents, 5000); // Update agent list every 5 seconds
+
+    // NEW: Load Vehicles Function
+    function loadVehicles() {
+        fetch('/manager/vehicles/list')
+            .then(response => response.json())
+            .then(data => {
+                allVehicles = data;
+                const select = document.getElementById('vehicleSelect');
+                select.innerHTML = '<option value="">Select Vehicle</option>';
+
+                data.forEach(vehicle => {
+                    const option = document.createElement('option');
+                    option.value = vehicle.id;
+                    option.textContent = `${vehicle.name} (${vehicle.number}) - ${vehicle.type}`;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error loading vehicles:', error));
+    }
+
+    function loadGoods() {
+        fetch('/manager/goods/list')
+            .then(response => response.json())
+            .then(data => {
+                allGoods = data.filter(good => good.status === 'available');
+            })
+            .catch(error => console.error('Error loading goods:', error));
+    }
+
+    // NEW: Update vehicle summary when selected
+    document.getElementById('vehicleSelect').addEventListener('change', function () {
+        const selectedId = parseInt(this.value);
+
+        if (selectedId) {
+            const selectedVehicle = allVehicles.find(v => v.id === selectedId);
+            if (selectedVehicle) {
+                document.getElementById('summaryVehicle').textContent =
+                    `${selectedVehicle.name} (${selectedVehicle.number})`;
+            }
+        } else {
+            document.getElementById('summaryVehicle').textContent = 'Not selected';
+        }
+    });
+
+    document.getElementById('startingLocation').addEventListener('change', function () {
+        const selectedId = parseInt(this.value);
+
+        if (selectedId) {
+            const selectedLocation = allLocations.find(loc => loc.id === selectedId);
+            if (selectedLocation) {
+                document.getElementById('summaryStart').textContent = selectedLocation.name;
+            }
+        } else {
+            document.getElementById('summaryStart').textContent = 'Not selected';
+        }
+
+        // Clear existing location-goods mappings when starting location changes
+        document.getElementById('locationGoodsMapping').innerHTML = '';
+        selectedLocationGoods = {};
+        pairCounter = 0;
+
+        // Clear map markers
+        routeMarkers.forEach(marker => routeMap.removeLayer(marker));
+        if (routePolyline) routeMap.removeLayer(routePolyline);
+        routeMarkers = [];
+
+        updateRouteSummary();
+    });
+
+    function addLocationGoodsPair() {
+        const startLocationId = parseInt(document.getElementById('startingLocation').value);
+
+        if (!startLocationId) {
+            alert('Please select a starting location first');
+            return;
+        }
+
+        const container = document.getElementById('locationGoodsMapping');
+
+        // Get available locations (excluding start location only, not already selected ones)
+        const availableLocations = allLocations.filter(loc => loc.id !== startLocationId);
+
+        if (availableLocations.length === 0) {
+            alert('No more locations available to add');
+            return;
+        }
+
+        pairCounter++;
+        const pairId = `pair_${pairCounter}`;
+
+        const pairDiv = document.createElement('div');
+        pairDiv.id = pairId;
+        pairDiv.className = 'mb-3 p-3 border rounded bg-light position-relative';
+        pairDiv.innerHTML = `
+            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" onclick="removePair('${pairId}')">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="row align-items-center">
+                <div class="col-md-5">
+                    <label class="form-label mb-1"><strong>Select Location</strong></label>
+                    <select class="form-control location-select" data-pair-id="${pairId}" required>
+                        <option value="">Choose Location</option>
+                        ${availableLocations.map(loc => `
+                            <option value="${loc.id}" data-lat="${loc.latitude}" data-lng="${loc.longitude}">
+                                ${loc.name}${loc.address ? ' - ' + loc.address : ''}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="col-md-1 text-center">
+                    <i class="fas fa-arrow-right fa-2x text-primary"></i>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label mb-1"><strong>Assign Good</strong></label>
+                    <input type="text" class="form-control goods-display mb-2" data-pair-id="${pairId}" placeholder="No good assigned yet" readonly>
+                    <select class="form-control goods-select" data-pair-id="${pairId}" required disabled style="display: none;">
+                        <option value="">Select Location First</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-primary w-100" onclick="showGoodsModal('${pairId}')" disabled data-pair-id="${pairId}" id="selectGoodBtn_${pairId}">
+                        <i class="fas fa-box"></i> Select Good
+                    </button>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(pairDiv);
+
+        // Add event listener to location select
+        const locationSelect = pairDiv.querySelector('.location-select');
+        locationSelect.addEventListener('change', function () {
+            handleLocationChange(pairId);
+        });
+    }
+
+    function handleLocationChange(pairId) {
+        const pairDiv = document.getElementById(pairId);
+        const locationSelect = pairDiv.querySelector('.location-select');
+        const selectGoodBtn = document.getElementById(`selectGoodBtn_${pairId}`);
+        const locationId = parseInt(locationSelect.value);
+
+        if (locationId) {
+            // Enable select good button
+            selectGoodBtn.disabled = false;
+
+            // Check if this location already has a good assigned
+            const currentGoodId = selectedLocationGoods[locationId];
+            if (currentGoodId) {
+                const good = allGoods.find(g => g.id === currentGoodId);
+                if (good) {
+                    updateGoodsDisplay(pairId, good);
+                }
+            } else {
+                // Clear goods display
+                const goodsDisplay = pairDiv.querySelector('.goods-display');
+                goodsDisplay.value = '';
+                goodsDisplay.placeholder = 'Click "Select Good" to assign';
+            }
+        } else {
+            // Disable select good button
+            selectGoodBtn.disabled = true;
+
+            // Clear goods display
+            const goodsDisplay = pairDiv.querySelector('.goods-display');
+            goodsDisplay.value = '';
+            goodsDisplay.placeholder = 'No good assigned yet';
+        }
+
+        updateRouteSummary();
+        updateMapRoute();
+    }
+
+    function showGoodsModal(pairId) {
+        const pairDiv = document.getElementById(pairId);
+        const locationSelect = pairDiv.querySelector('.location-select');
+        const locationId = parseInt(locationSelect.value);
+
+        if (!locationId) {
+            alert('Please select a location first');
+            return;
+        }
+
+        // Get already selected goods IDs (excluding current location's good)
+        const selectedGoodsIds = [];
+        for (let locId in selectedLocationGoods) {
+            if (parseInt(locId) !== locationId) {
+                selectedGoodsIds.push(selectedLocationGoods[locId]);
+            }
+        }
+
+        // Filter available goods
+        const availableGoods = allGoods.filter(good =>
+            !selectedGoodsIds.includes(good.id)
+        );
+
+        if (availableGoods.length === 0) {
+            alert('No goods available. All goods have been assigned to other locations.');
+            return;
+        }
+
+        // Create modal content
+        let modalContent = `
+            <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+        `;
+
+        availableGoods.forEach(good => {
+            const isSelected = selectedLocationGoods[locationId] === good.id;
+            modalContent += `
+                <button type="button" class="list-group-item list-group-item-action ${isSelected ? 'active' : ''}" 
+                        onclick="selectGood('${pairId}', ${good.id}, ${locationId})">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${good.name}</h6>
+                        <small>${good.weight} kg</small>
+                    </div>
+                    <small>Category: ${good.category}</small>
+                    ${isSelected ? '<span class="badge bg-light text-dark float-end">Currently Selected</span>' : ''}
+                </button>
+            `;
+        });
+
+        modalContent += '</div>';
+
+        // Show modal
+        const existingModal = document.getElementById('goodsSelectionModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modalHtml = `
+            <div class="modal fade" id="goodsSelectionModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Select Good for Delivery</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${modalContent}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modal = new bootstrap.Modal(document.getElementById('goodsSelectionModal'));
+        modal.show();
+    }
+
+    function selectGood(pairId, goodId, locationId) {
+        // Update selectedLocationGoods
+        selectedLocationGoods[locationId] = goodId;
+
+        // Find and update the goods display
+        const good = allGoods.find(g => g.id === goodId);
+        if (good) {
+            updateGoodsDisplay(pairId, good);
+        }
+
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('goodsSelectionModal'));
+        modal.hide();
+
+        updateRouteSummary();
+        updateMapRoute();
+    }
+
+    function updateGoodsDisplay(pairId, good) {
+        const pairDiv = document.getElementById(pairId);
+        const goodsDisplay = pairDiv.querySelector('.goods-display');
+        goodsDisplay.value = `${good.name} (${good.weight}kg - ${good.category})`;
+    }
+
+    function removePair(pairId) {
+        const pairDiv = document.getElementById(pairId);
+        const locationSelect = pairDiv.querySelector('.location-select');
+        const locationId = parseInt(locationSelect.value);
+
+        // Remove from selectedLocationGoods
+        if (locationId) {
+            delete selectedLocationGoods[locationId];
+        }
+
+        // Remove the pair div
+        pairDiv.remove();
+
+        updateRouteSummary();
+        updateMapRoute();
+    }
+
+    function updateRouteSummary() {
+        const stopsCount = Object.keys(selectedLocationGoods).length;
+        document.getElementById('summaryStops').textContent = stopsCount;
+        document.getElementById('summaryGoods').textContent = stopsCount;
+    }
+
+    function updateMapRoute() {
+        routeMarkers.forEach(marker => routeMap.removeLayer(marker));
+        if (routePolyline) routeMap.removeLayer(routePolyline);
+        routeMarkers = [];
+
+        const startLocationId = parseInt(document.getElementById('startingLocation').value);
+        if (!startLocationId) return;
+
+        const startLocation = allLocations.find(loc => loc.id === startLocationId);
+        const routePoints = [[startLocation.latitude, startLocation.longitude]];
+
+        const startMarker = L.marker([startLocation.latitude, startLocation.longitude], {
+            icon: L.divIcon({
+                className: 'custom-marker',
+                html: '<div style="background: green; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold;">S</div>'
+            })
+        }).bindPopup(`<b>Start:</b> ${startLocation.name}`).addTo(routeMap);
+        routeMarkers.push(startMarker);
+
+        Object.keys(selectedLocationGoods).forEach((locId, index) => {
+            const location = allLocations.find(loc => loc.id === parseInt(locId));
+            const goodsId = selectedLocationGoods[locId];
+            const good = allGoods.find(g => g.id === goodsId);
+
+            if (location && good) {
+                routePoints.push([location.latitude, location.longitude]);
+
+                const marker = L.marker([location.latitude, location.longitude], {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: `<div style="background: blue; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${index + 1}</div>`
+                    })
+                }).bindPopup(`<b>${location.name}</b><br>Good: ${good.name}`).addTo(routeMap);
+                routeMarkers.push(marker);
+            }
+        });
+
+        if (routePoints.length > 1) {
+            routePolyline = L.polyline(routePoints, { color: 'blue', weight: 3 }).addTo(routeMap);
+            routeMap.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
+        }
+    }
+
+    function assignRoute() {
+        const routeName = document.getElementById('routeName').value.trim();
+        const agentId = document.getElementById('agentSelect').value;
+        const vehicleId = document.getElementById('vehicleSelect').value;
+        const startingLocationId = document.getElementById('startingLocation').value;
+
+        if (!routeName || !agentId || !vehicleId || !startingLocationId) {
+            alert('Please fill in Route Name, Agent, Vehicle, and Starting Location');
+            return;
+        }
+
+        if (Object.keys(selectedLocationGoods).length === 0) {
+            alert('Please add at least one delivery location with goods');
+            return;
+        }
+
+        // Validate all pairs have both location and goods selected
+        const allLocationSelects = document.querySelectorAll('.location-select');
+        let isValid = true;
+        let invalidPairId = null;
+
+        allLocationSelects.forEach(locationSelect => {
+            const locationId = parseInt(locationSelect.value);
+            if (!locationId || !selectedLocationGoods[locationId]) {
+                isValid = false;
+                invalidPairId = locationSelect.dataset.pairId;
+            }
+        });
+
+        if (!isValid) {
+            alert('Please select both location and goods for all delivery stops');
+            return;
+        }
+
+        const routeData = {
+            route_name: routeName,
+            agent_id: parseInt(agentId),
+            vehicle_id: parseInt(vehicleId),
+            start_location_id: parseInt(startingLocationId),
+            location_goods_mapping: selectedLocationGoods
+        };
+
+        fetch('/manager/routes/assign', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(routeData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Route assigned successfully!');
+                    document.getElementById('routeForm').reset();
+                    document.getElementById('locationGoodsMapping').innerHTML = '';
+                    selectedLocationGoods = {};
+                    pairCounter = 0;
+                    routeMarkers.forEach(marker => routeMap.removeLayer(marker));
+                    if (routePolyline) routeMap.removeLayer(routePolyline);
+                    routeMarkers = [];
+                    document.getElementById('summaryStart').textContent = 'Not selected';
+                    document.getElementById('summaryVehicle').textContent = 'Not selected';
+                    updateRouteSummary();
+                    loadRoutes();
+                    loadGoods(); // Reload goods to update available goods
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error assigning route:', error);
+                alert('Error assigning route');
+            });
+    }
+
+    function loadRoutes() {
+        fetch('/manager/routes/list')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('routesTable');
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No routes assigned yet</td></tr>';
+                    return;
+                }
+
+                data.forEach(route => {
+                    const row = document.createElement('tr');
+                    const statusBadge = route.status === 'completed' ? 'success' :
+                        route.status === 'in_progress' ? 'warning' : 'secondary';
+
+                    row.innerHTML = `
+                        <td><strong>${route.route_name}</strong></td>
+                        <td>${route.agent_name}</td>
+                        <td>${route.vehicle_name ? route.vehicle_name + ' (' + route.vehicle_number + ')' : 'N/A'}</td>
+                        <td>${route.start_location_name}</td>
+                        <td><span class="badge bg-info">${route.stops_count} stops</span></td>
+                        <td><span class="badge bg-${statusBadge}">${route.status}</span></td>
+                        <td>${new Date(route.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="viewRouteDetails(${route.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteRoute(${route.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error loading routes:', error));
+    }
+
+    // Set up real-time polling for routes
+    setInterval(loadRoutes, 5000); // Update routes list every 5 seconds
+
+    function viewRouteDetails(routeId) {
+        fetch(`/manager/routes/details/${routeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const route = data.route;
+                    const details = data.details;
+
+                    let detailsHtml = `
+                        <h5>${route.route_name}</h5>
+                        <p><strong>Agent:</strong> ${route.agent_name}</p>
+                        <p><strong>Vehicle:</strong> ${route.vehicle_name ? route.vehicle_name + ' (' + route.vehicle_number + ')' : 'N/A'}</p>
+                        <p><strong>Starting Location:</strong> ${route.start_location_name}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-primary">${route.status}</span></p>
+                        <hr>
+                        <h6>Delivery Stops:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Order</th>
+                                        <th>Location</th>
+                                        <th>Good</th>
+                                        <th>Weight</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    details.forEach(detail => {
+                        const statusBadge = detail.delivery_status === 'delivered' ? 'success' :
+                            detail.delivery_status === 'in_transit' ? 'warning' : 'secondary';
+                        detailsHtml += `
+                            <tr>
+                                <td>${detail.sequence_order}</td>
+                                <td>${detail.location_name}</td>
+                                <td>${detail.goods_name}</td>
+                                <td>${detail.goods_weight} kg</td>
+                                <td><span class="badge bg-${statusBadge}">${detail.delivery_status}</span></td>
+                            </tr>
+                        `;
+                    });
+
+                    detailsHtml += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+
+                    document.getElementById('routeDetailsContent').innerHTML = detailsHtml;
+                    const modal = new bootstrap.Modal(document.getElementById('routeDetailsModal'));
+                    modal.show();
+                } else {
+                    alert('Error loading route details');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading route details');
+            });
+    }
+
+    function deleteRoute(routeId) {
+        if (confirm('Are you sure you want to delete this route?')) {
+            fetch(`/manager/routes/delete/${routeId}`, {
+                method: 'DELETE'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Route deleted successfully');
+                        loadRoutes();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting route');
+                });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}

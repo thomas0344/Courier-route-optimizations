@@ -1,0 +1,508 @@
+{% extends "manager/base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Route Assignment</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Assign New Route</h5>
+                        <form id="routeForm">
+                            <div class="form-group mb-3">
+                                <label for="routeName">Route Name</label>
+                                <input type="text" class="form-control" id="routeName" name="name" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="agentSelect">Assign Agent</label>
+                                <select class="form-control" id="agentSelect" name="agent_id" required>
+                                    <option value="">Select Agent</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="startingLocation">Starting Location</label>
+                                <select class="form-control" id="startingLocation" name="starting_location" required>
+                                    <option value="">Select Starting Location</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Delivery Locations</label>
+                                <div id="locationCheckboxes">
+                                    <!-- Locations will be loaded here -->
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Select Goods</label>
+                                <div id="goodsCheckboxes">
+                                    <!-- Goods will be loaded here -->
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="assignRoute()">
+                                <i class="fas fa-tasks"></i> Assign Route
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Route Map</h5>
+                        <div id="routeMap" class="map-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Existing Routes</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Agent</th>
+                                <th>Starting Location</th>
+                                <th>Delivery Locations</th>
+                                <th>Goods</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routesTable">
+                            <!-- Routes will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Messaging Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="messageModalLabel"><i class="fas fa-comments text-dark"></i> Messages with
+                    Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="managerMessageBox"
+                    style="height: 350px; overflow-y: auto; border: 1px solid #eee; padding: 15px; margin-bottom: 15px; background: #fff; border-radius: 10px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);">
+                    <!-- Messages will load here -->
+                </div>
+                <div class="input-group shadow-sm rounded">
+                    <input type="text" id="managerMessageInput" class="form-control"
+                        placeholder="Type a message to agent..." style="border-radius: 20px 0 0 20px;">
+                    <button class="btn btn-primary" type="button" onclick="sendManagerMessage()"
+                        style="border-radius: 0 20px 20px 0;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let routeMap;
+    let routeMarkers = [];
+    let routePolyline = null;
+
+    // Initialize map
+    function initMap() {
+        routeMap = L.map('routeMap').setView([40.7128, -74.0060], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(routeMap);
+
+        loadLocations();
+        loadAgents();
+        loadRoutes();
+        loadGoods();
+    }
+
+    // Load locations for route creation
+    function loadLocations() {
+        fetch('/manager/locations/list')
+            .then(response => response.json())
+            .then(data => {
+                // Populate starting location dropdown
+                const startingLocationSelect = document.getElementById('startingLocation');
+                startingLocationSelect.innerHTML = '<option value="">Select Starting Location</option>';
+
+                data.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = location.id;
+                    option.textContent = location.name + ' (' + location.address + ')';
+                    startingLocationSelect.appendChild(option);
+                });
+
+                // Populate delivery locations checkboxes
+                const container = document.getElementById('locationCheckboxes');
+                container.innerHTML = '';
+
+                data.forEach(location => {
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'form-check';
+                    checkbox.innerHTML = `
+                        <input class="form-check-input" type="checkbox" value="${location.id}" id="loc_${location.id}">
+                        <label class="form-check-label" for="loc_${location.id}">
+                            ${location.name}
+                        </label>
+                    `;
+                    container.appendChild(checkbox);
+                });
+            })
+            .catch(error => console.error('Error loading locations:', error));
+    }
+
+    // Load agents for assignment
+    function loadAgents() {
+        const select = document.getElementById('agentSelect');
+        const currentSelection = select.value;
+
+        fetch('/manager/api/agents/list')
+            .then(response => response.json())
+            .then(data => {
+                select.innerHTML = '<option value="">Select Agent</option>';
+
+                data.forEach(agent => {
+                    const option = document.createElement('option');
+                    option.value = agent.id;
+
+                    let statusText = "";
+                    if (agent.simulation_status === 'in_progress' || agent.simulation_status === 'paused') {
+                        option.disabled = true;
+                        statusText = ` (Simulating - ${agent.current_route_name || 'Active Route'})`;
+                        option.classList.add('text-muted');
+                    }
+
+                    option.textContent = agent.username + statusText;
+                    select.appendChild(option);
+                });
+
+                // Restore selection if possible
+                if (currentSelection) {
+                    select.value = currentSelection;
+                }
+            })
+            .catch(error => console.error('Error loading agents:', error));
+    }
+
+    // Set up real-time polling
+    setInterval(loadAgents, 5000); // Update agent list every 5 seconds
+
+    // Load existing routes
+    function loadRoutes() {
+        fetch('/manager/api/routes/list')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('routesTable');
+                // Only clear and rebuild if data has changed to avoid flickering if possible, 
+                // but for now, simple rebuild is fine as per requirements.
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No routes found</td></tr>';
+                    return;
+                }
+
+                data.forEach(route => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${route.name}</td>
+                        <td>${route.agent_name || 'Unassigned'}</td>
+                        <td>${route.start_location || 'Unknown'}</td>
+                        <td>${route.delivery_locations || 'None'}</td>
+                        <td>${route.goods || 'None'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="viewRoute(${route.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-dark" onclick="openMessageModal(${route.id})">
+                                <i class="fas fa-comments"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="editRoute(${route.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteRoute(${route.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading routes:', error);
+                const tbody = document.getElementById('routesTable');
+                if (tbody.innerHTML === '') {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading routes</td></tr>';
+                }
+            });
+    }
+
+    // Set up real-time polling for routes
+    setInterval(loadRoutes, 5000); // Update routes list every 5 seconds
+
+    function getStatusColor(status) {
+        const colors = {
+            'active': 'success',
+            'completed': 'primary',
+            'paused': 'warning',
+            'pending': 'secondary'
+        };
+        return colors[status] || 'secondary';
+    }
+
+    // Load goods for route assignment
+    function loadGoods() {
+        // In a real implementation, this would fetch from a backend API
+        // For now, we'll use dummy data
+        const dummyGoods = [
+            { id: 1, name: "Electronics", weight: "5kg" },
+            { id: 2, name: "Furniture", weight: "50kg" },
+            { id: 3, name: "Groceries", weight: "10kg" },
+            { id: 4, name: "Clothing", weight: "2kg" },
+            { id: 5, name: "Medical Supplies", weight: "8kg" }
+        ];
+
+        const container = document.getElementById('goodsCheckboxes');
+        container.innerHTML = '';
+
+        dummyGoods.forEach(good => {
+            const div = document.createElement('div');
+            div.className = 'form-check';
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.className = 'form-check-input';
+            input.id = `good-${good.id}`;
+            input.value = good.id;
+
+            const label = document.createElement('label');
+            label.className = 'form-check-label';
+            label.htmlFor = `good-${good.id}`;
+            label.textContent = `${good.name} (${good.weight})`;
+
+            div.appendChild(input);
+            div.appendChild(label);
+            container.appendChild(div);
+        });
+    }
+
+    function assignRoute() {
+        const routeName = document.getElementById('routeName').value;
+        const agentId = document.getElementById('agentSelect').value;
+        const startingLocationId = document.getElementById('startingLocation').value;
+        const deliveryLocations = [];
+        const selectedGoods = [];
+
+        document.querySelectorAll('#locationCheckboxes input[type="checkbox"]:checked').forEach(checkbox => {
+            deliveryLocations.push(parseInt(checkbox.value));
+        });
+
+        document.querySelectorAll('#goodsCheckboxes input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedGoods.push(parseInt(checkbox.value));
+        });
+
+        if (!routeName || !agentId || !startingLocationId || deliveryLocations.length < 1 || selectedGoods.length < 1) {
+            alert('Please fill all required fields: route name, agent, starting location, at least one delivery location, and at least one good');
+            return;
+        }
+
+        // Create route data
+        const routeData = {
+            name: routeName,
+            agent_id: agentId,
+            starting_location_id: startingLocationId,
+            delivery_locations: deliveryLocations,
+            goods: selectedGoods
+        };
+
+        saveRoute(routeData);
+    }
+
+    function displayRouteOnMap(route) {
+        // Clear existing markers and polyline
+        routeMarkers.forEach(marker => routeMap.removeLayer(marker));
+        if (routePolyline) {
+            routeMap.removeLayer(routePolyline);
+        }
+        routeMarkers = [];
+
+        // Get location details for selected locations
+        fetch('/manager/locations/list')
+            .then(response => response.json())
+            .then(locations => {
+                const selectedLocations = locations.filter(loc =>
+                    route.locations.includes(loc.id.toString())
+                );
+
+                const routePoints = [];
+
+                selectedLocations.forEach((location, index) => {
+                    const marker = L.marker([location.latitude, location.longitude])
+                        .bindPopup(`<b>Stop ${index + 1}</b><br>${location.name}`)
+                        .addTo(routeMap);
+                    routeMarkers.push(marker);
+                    routePoints.push([location.latitude, location.longitude]);
+                });
+
+                // Draw polyline connecting the points
+                if (routePoints.length > 1) {
+                    routePolyline = L.polyline(routePoints, { color: 'blue' }).addTo(routeMap);
+                    routeMap.fitBounds(routePolyline.getBounds());
+                }
+            });
+    }
+
+    function saveRoute(routeData) {
+        // In a real app, this would send data to a backend API
+        // For demo purposes, we'll just add it to the table
+
+        const table = document.getElementById('routesTable').getElementsByTagName('tbody')[0];
+        const newRow = table.insertRow();
+
+        const nameCell = newRow.insertCell(0);
+        nameCell.textContent = routeData.name;
+
+        const agentCell = newRow.insertCell(1);
+        const agentName = document.querySelector(`#agentSelect option[value="${routeData.agent_id}"]`)?.textContent || 'Unassigned';
+        agentCell.textContent = agentName;
+
+        const startingLocationCell = newRow.insertCell(2);
+        const startingLocationName = document.querySelector(`#startingLocation option[value="${routeData.starting_location_id}"]`)?.textContent || 'Unknown';
+        startingLocationCell.textContent = startingLocationName;
+
+        const locationsCell = newRow.insertCell(3);
+        locationsCell.textContent = routeData.delivery_locations.length + ' delivery locations';
+
+        const goodsCell = newRow.insertCell(4);
+        goodsCell.textContent = routeData.goods.length + ' goods';
+
+        const actionsCell = newRow.insertCell(5);
+        actionsCell.innerHTML = `
+            <button class="btn btn-sm btn-info" onclick="viewRoute(${Math.random()})">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deleteRoute(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+
+        // Clear form
+        document.getElementById('routeForm').reset();
+
+        // Show success message
+        alert('Route assigned successfully!');
+
+        // Update the map with the new route
+        displayRouteOnMap(routeData);
+    }
+
+    function viewRoute(routeId) {
+        // Mock implementation
+        alert(`Viewing route ${routeId}`);
+    }
+
+    function editRoute(routeId) {
+        // Mock implementation
+        alert(`Editing route ${routeId}`);
+    }
+
+    function deleteRoute(routeId) {
+        if (confirm('Are you sure you want to delete this route?')) {
+            // Mock implementation
+            alert(`Route ${routeId} deleted`);
+            loadRoutes();
+        }
+    }
+
+    let currentMessageRouteId = null;
+    let messageInterval = null;
+    let messageModalObj = null;
+
+    function openMessageModal(routeId) {
+        currentMessageRouteId = routeId;
+
+        if (!messageModalObj) {
+            messageModalObj = new bootstrap.Modal(document.getElementById('messageModal'));
+        }
+
+        messageModalObj.show();
+        loadManagerMessages(routeId);
+
+        // Refresh messages while modal is open
+        if (messageInterval) clearInterval(messageInterval);
+        messageInterval = setInterval(() => {
+            const modalElem = document.getElementById('messageModal');
+            if (modalElem.classList.contains('show')) {
+                loadManagerMessages(routeId);
+            } else {
+                clearInterval(messageInterval);
+            }
+        }, 5000);
+    }
+
+    function loadManagerMessages(routeId) {
+        fetch(`/manager/api/get-messages/${routeId}`)
+            .then(r => r.json())
+            .then(data => {
+                const box = document.getElementById('managerMessageBox');
+                if (data.success) {
+                    if (data.messages.length === 0) {
+                        box.innerHTML = '<p class="text-muted text-center">No messages yet</p>';
+                        return;
+                    }
+
+                    box.innerHTML = data.messages.map(msg => `
+                        <div class="mb-2 p-2 rounded ${msg.sender_type === 'admin' ? 'bg-primary text-white text-right ml-5' : 'bg-light text-left mr-5'}">
+                            <div class="small ${msg.sender_type === 'admin' ? 'text-white-50' : 'text-muted'}">
+                                ${msg.sender_type.toUpperCase()} - ${msg.created_at}
+                            </div>
+                            <div>${msg.message}</div>
+                        </div>
+                    `).join('');
+                    box.scrollTop = box.scrollHeight;
+                }
+            });
+    }
+
+    function sendManagerMessage() {
+        if (!currentMessageRouteId) return;
+
+        const input = document.getElementById('managerMessageInput');
+        const message = input.value.trim();
+
+        if (!message) return;
+
+        fetch(`/manager/api/send-message/${currentMessageRouteId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    input.value = '';
+                    loadManagerMessages(currentMessageRouteId);
+                }
+            });
+    }
+
+    // Initialize map when page loads
+    document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}

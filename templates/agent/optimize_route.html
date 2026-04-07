@@ -1,0 +1,555 @@
+{% extends "agent/base.html" %} {% block title %}Optimize Route - Agent Panel{% endblock %} {% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Route Optimization</h1>
+        <p class="text-muted mb-0">View and navigate your optimized delivery route</p>
+    </div>
+    <a href="/agent/routes" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Routes
+    </a>
+</div>
+
+<!-- Route Info and Controls -->
+<div class="row mb-4">
+    <!-- Route Information -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i> Route Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <h4 id="routeName">Loading...</h4>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Starting Point:</strong> <span id="startLocation">-</span></p>
+                        <p class="mb-2"><strong>Total Stops:</strong>
+                            <span id="totalStops" class="badge bg-info">0</span>
+                        </p>
+                        <p class="mb-2"><strong>Stop Names:</strong></p>
+                        <ul id="stopList" style="margin-left: 10px;"></ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Distance:</strong> <span id="routeDistance">0 km</span></p>
+                        <p class="mb-2"><strong>Status:</strong> <span id="routeStatus"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Controls -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cog me-2"></i> Route Controls
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success" onclick="startRoute()" id="startBtn" disabled>
+                        <i class="fas fa-play me-2"></i>Start Route
+                    </button>
+                    <button class="btn btn-warning" onclick="pauseRoute()" id="pauseBtn" disabled>
+                        <i class="fas fa-pause me-2"></i>Pause Route
+                    </button>
+                    <button class="btn btn-danger" onclick="completeRoute()" id="completeBtn" disabled>
+                        <i class="fas fa-check me-2"></i>Complete Route
+                    </button>
+                    <button class="btn btn-info" onclick="updateLocation()" id="locationBtn">
+                        <i class="fas fa-map-marker-alt me-2"></i>Update Location
+                    </button>
+                    <button class="btn btn-primary" onclick="startNavigation()">
+                        <i class="fas fa-directions me-2"></i>Start Navigation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map and Route Details -->
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-map me-2"></i> Route Map
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="routeMap" style="height: 600px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list-ol me-2"></i> Delivery Sequence
+                </h5>
+            </div>
+            <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                <div id="deliverySequence">
+                    <!-- Delivery stops will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Route Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Estimated Distance</h6>
+                <h3 id="estimatedDistance">0 km</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Estimated Time</h6>
+                <h3 id="estimatedTime">0 min</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Total Weight</h6>
+                <h3 id="totalWeight">0 kg</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Completed</h6>
+                <h3 id="completedStops">0/0</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+    let routeMap;
+    let routeData = null;
+    let markers = [];
+    let polyline = null;
+    let currentLocationMarker = null;
+    let currentRouteId = null;
+    let currentRouteStatus = 'pending';
+
+    function initMap() {
+        routeMap = L.map('routeMap').setView([10.1632, 76.6413], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(routeMap);
+
+        loadRouteData();
+    }
+
+    function loadRouteData() {
+        const routeId = sessionStorage.getItem('optimizeRouteId');
+
+        if (!routeId) {
+            alert('No route selected. Redirecting to routes page.');
+            window.location.href = '/agent/routes';
+            return;
+        }
+
+        currentRouteId = routeId;
+
+        fetch(`/agent/api/route-for-optimization/${routeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    routeData = data;
+                    currentRouteStatus = data.route.status;
+                    displayRouteInfo(data.route, data.stops);
+                    displayRouteOnMap(data.route, data.stops);
+                    displayDeliverySequence(data.stops);
+                    calculateStatistics(data.stops);
+                    updateControlButtons(data.route.status);
+                } else {
+                    alert('Error loading route: ' + data.message);
+                    window.location.href = '/agent/routes';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading route data');
+            });
+    }
+
+    function displayRouteInfo(route, stops) {
+        document.getElementById('routeName').textContent = route.route_name;
+        document.getElementById('startLocation').textContent = route.start_location_name;
+        document.getElementById('totalStops').textContent = stops.length;
+
+        // Show stop names (convert string → array)
+        if (route.stop_location_names) {
+            const stopNamesArray = route.stop_location_names.split(",").map(s => s.trim());
+            document.getElementById('stopList').innerHTML = stopNamesArray
+                .map(name => `<li>${name}</li>`)
+                .join("");
+        }
+
+        const statusBadge = getStatusBadge(route.status);
+        document.getElementById('routeStatus').innerHTML = statusBadge;
+
+        // Calculate and display distance
+        let totalDistance = 0;
+        if (stops.length > 0) {
+            let prevLat = route.start_latitude;
+            let prevLng = route.start_longitude;
+
+            stops.forEach(stop => {
+                const distance = calculateDistance(prevLat, prevLng, stop.latitude, stop.longitude);
+                totalDistance += distance;
+                prevLat = stop.latitude;
+                prevLng = stop.longitude;
+            });
+        }
+        document.getElementById('routeDistance').textContent = totalDistance.toFixed(2) + ' km';
+    }
+
+    function displayRouteOnMap(route, stops) {
+        // Clear existing markers and polylines
+        markers.forEach(marker => routeMap.removeLayer(marker));
+        if (polyline) routeMap.removeLayer(polyline);
+        markers = [];
+
+        // Add starting location marker
+        const startMarker = L.marker([route.start_latitude, route.start_longitude], {
+            icon: L.divIcon({
+                className: 'custom-marker',
+                html: '<div style="background: green; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">START</div>',
+                iconSize: [40, 40]
+            })
+        }).bindPopup(`<b>Starting Point</b><br>${route.start_location_name}`).addTo(routeMap);
+        markers.push(startMarker);
+
+        // Route points for polyline
+        const routePoints = [
+            [route.start_latitude, route.start_longitude]
+        ];
+
+        // Add stop markers
+        stops.forEach((stop, index) => {
+            routePoints.push([stop.latitude, stop.longitude]);
+
+            const marker = L.marker([stop.latitude, stop.longitude], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: #3498db; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${index + 1}</div>`,
+                    iconSize: [35, 35]
+                })
+            }).bindPopup(`
+                <div>
+                    <b>Stop ${index + 1}: ${stop.location_name}</b><br>
+                    <small>${stop.location_address}</small><br>
+                    <strong>Good:</strong> ${stop.goods_name}<br>
+                    <strong>Weight:</strong> ${stop.goods_weight} kg
+                </div>
+            `).addTo(routeMap);
+            markers.push(marker);
+        });
+
+        // Draw route polyline
+        if (routePoints.length > 1) {
+            polyline = L.polyline(routePoints, {
+                color: '#3498db',
+                weight: 4,
+                opacity: 0.7
+            }).addTo(routeMap);
+            routeMap.fitBounds(polyline.getBounds(), {
+                padding: [50, 50]
+            });
+        }
+
+        // Add current location if available
+        getCurrentLocation();
+    }
+
+    function displayDeliverySequence(stops) {
+        const container = document.getElementById('deliverySequence');
+        container.innerHTML = '';
+
+        stops.forEach((stop, index) => {
+            const stopDiv = document.createElement('div');
+            stopDiv.className = 'card mb-3 border-start border-primary border-3';
+            stopDiv.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">
+                                <span class="badge bg-primary me-2">${index + 1}</span>
+                                ${stop.location_name}
+                            </h6>
+                            <p class="text-muted small mb-2">${stop.location_address}</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-box me-1"></i>${stop.goods_name}
+                                </span>
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-weight-hanging me-1"></i>${stop.goods_weight} kg
+                                </span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="focusOnStop(${index})">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(stopDiv);
+        });
+    }
+
+    function calculateStatistics(stops) {
+        // Calculate total weight
+        const totalWeight = stops.reduce((sum, stop) => sum + stop.goods_weight, 0);
+        document.getElementById('totalWeight').textContent = totalWeight.toFixed(2) + ' kg';
+
+        // Estimate distance (simplified calculation)
+        let totalDistance = 0;
+        if (routeData && routeData.route) {
+            let prevLat = routeData.route.start_latitude;
+            let prevLng = routeData.route.start_longitude;
+
+            stops.forEach(stop => {
+                const distance = calculateDistance(prevLat, prevLng, stop.latitude, stop.longitude);
+                totalDistance += distance;
+                prevLat = stop.latitude;
+                prevLng = stop.longitude;
+            });
+        }
+
+        document.getElementById('estimatedDistance').textContent = totalDistance.toFixed(2) + ' km';
+
+        // Estimate time (assuming 40 km/h average speed + 10 min per stop)
+        const travelTime = (totalDistance / 40) * 60; // minutes
+        const stopTime = stops.length * 10; // 10 minutes per stop
+        const totalTime = Math.round(travelTime + stopTime);
+        document.getElementById('estimatedTime').textContent = totalTime + ' min';
+
+        // Completed stops
+        document.getElementById('completedStops').textContent = `0/${stops.length}`;
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        // Haversine formula for distance calculation
+        const R = 6371; // Earth's radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    function getStatusBadge(status) {
+        const statusConfig = {
+            'pending': {
+                class: 'bg-warning',
+                text: 'Pending'
+            },
+            'in_progress': {
+                class: 'bg-primary',
+                text: 'In Progress'
+            },
+            'completed': {
+                class: 'bg-success',
+                text: 'Completed'
+            }
+        };
+
+        const config = statusConfig[status] || {
+            class: 'bg-secondary',
+            text: status
+        };
+        return `<span class="badge ${config.class}">${config.text}</span>`;
+    }
+
+    function updateControlButtons(status) {
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const completeBtn = document.getElementById('completeBtn');
+
+        startBtn.disabled = !currentRouteId || status !== 'pending';
+        pauseBtn.disabled = !currentRouteId || status !== 'in_progress';
+        completeBtn.disabled = !currentRouteId || status === 'completed';
+    }
+
+    function getCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    if (currentLocationMarker) {
+                        routeMap.removeLayer(currentLocationMarker);
+                    }
+
+                    currentLocationMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'current-location-marker',
+                            html: '<div style="background: red; color: white; border-radius: 50%; width: 20px; height: 20px; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                            iconSize: [20, 20]
+                        })
+                    }).bindPopup('<b>Your Current Location</b>').addTo(routeMap);
+                },
+                function(error) {
+                    console.log('Geolocation error:', error);
+                }
+            );
+        }
+    }
+
+    function focusOnStop(index) {
+        if (routeData && routeData.stops[index]) {
+            const stop = routeData.stops[index];
+            routeMap.setView([stop.latitude, stop.longitude], 15);
+            markers[index + 1].openPopup(); // +1 because first marker is start location
+        }
+    }
+
+    function startRoute() {
+        if (!currentRouteId) return;
+
+        fetch('/agent/api/route/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    route_id: currentRouteId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentRouteStatus = 'in_progress';
+                    updateControlButtons('in_progress');
+                    document.getElementById('routeStatus').innerHTML = getStatusBadge('in_progress');
+                    alert('Route started successfully!');
+                } else {
+                    alert('Error starting route: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error starting route:', error);
+                alert('Error starting route');
+            });
+    }
+
+    function pauseRoute() {
+        if (!currentRouteId) return;
+
+        fetch('/agent/api/route/pause', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    route_id: currentRouteId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentRouteStatus = 'pending';
+                    updateControlButtons('pending');
+                    document.getElementById('routeStatus').innerHTML = getStatusBadge('pending');
+                    alert('Route paused');
+                } else {
+                    alert('Error pausing route: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error pausing route:', error);
+                alert('Error pausing route');
+            });
+    }
+
+    function completeRoute() {
+        if (!currentRouteId) return;
+
+        if (!confirm('Are you sure you want to mark this route as completed?')) {
+            return;
+        }
+
+        fetch('/agent/api/route/complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    route_id: currentRouteId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentRouteStatus = 'completed';
+                    updateControlButtons('completed');
+                    document.getElementById('routeStatus').innerHTML = getStatusBadge('completed');
+                    alert('Route completed successfully!');
+                } else {
+                    alert('Error completing route: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error completing route:', error);
+                alert('Error completing route');
+            });
+    }
+
+    function updateLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    getCurrentLocation();
+                    alert('Location updated successfully!');
+                },
+                function(error) {
+                    alert('Unable to get your location. Please check your browser settings.');
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
+    }
+
+    function startNavigation() {
+        if (!routeData || !routeData.stops || routeData.stops.length === 0) {
+            alert('No stops available to navigate');
+            return;
+        }
+
+        // Navigate to first stop
+        const firstStop = routeData.stops[0];
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${firstStop.latitude},${firstStop.longitude}`;
+        window.open(googleMapsUrl, '_blank');
+
+        alert('Navigation started! Opening Google Maps for directions.');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+    });
+</script>
+{% endblock %}

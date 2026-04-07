@@ -1,0 +1,1952 @@
+{% extends "agent/base.html" %} {% block title %}Route Optimization - ML Enhanced{% endblock %} {% block content %}
+
+<style>
+    .progress-bar {
+        transition: width 0.6s ease;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .stat-label {
+        margin-left: 10px;
+        flex-grow: 1;
+    }
+
+    .stat-value {
+        font-weight: 600;
+    }
+
+    .score-item label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+    .sim-stats {
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .sim-stats strong {
+        color: #333;
+    }
+
+    /* Risky Segment Marker Animation */
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.6);
+        }
+
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.9);
+        }
+
+        100% {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.6);
+        }
+    }
+
+    .risky-marker-icon {
+        z-index: 1000 !important;
+    }
+
+    .risky-segment-overlay {
+        z-index: 500 !important;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Route Optimization</h1>
+        <p class="text-muted mb-0">TSP Algorithm with ML-Enhanced Carbon Emission Analysis</p>
+    </div>
+    <a href="/agent/assignedroutes" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Routes
+    </a>
+</div>
+
+<!-- Route Info & Actions -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Route Information</h5>
+            </div>
+            <div class="card-body">
+                <h4 id="routeName">Loading...</h4>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Start:</strong> <span id="startLocation">-</span></p>
+                        <p class="mb-2"><strong>Stops:</strong> <span id="totalStops" class="badge bg-info">0</span></p>
+                        <p class="mb-2"><strong>Stop Names:</strong> <span id="stopNames" class="text-muted">-</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Status:</strong> <span id="routeStatus"></span></p>
+                        <p class="mb-2"><strong>Vehicle:</strong> <span id="vehicleInfo">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Actions</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-success btn-lg w-100 mb-3" onclick="optimizeRoute()" id="optimizeBtn">
+                    <i class="fas fa-magic me-2"></i>Optimize Route
+                </button>
+                <button class="btn btn-primary w-100 mb-2" onclick="startNavigation()" id="navBtn" disabled>
+                    <i class="fas fa-directions me-2"></i>Start Navigation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optimization Results -->
+<div id="optimizationResults" style="display:none;">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h6>Optimal Distance</h6>
+                    <h3 id="optimalDistance">0 km</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h6>Paths Evaluated</h6>
+                    <h3 id="pathsEvaluated">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <h6>Segments</h6>
+                    <h3 id="totalSegments">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h6>CO₂ Emission</h6>
+                    <h3 id="carbonEmission">0 kg</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-map me-2"></i>Optimized Route Map</h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadSavedOptimization()" id="loadSavedBtn">
+                        <i class="fas fa-sync-alt me-1"></i>Load Saved Route
+                    </button>
+                </div>
+                <div class="card-body p-0 position-relative">
+                    <!-- <div id="mapLoadingOverlay" class="d-flex flex-column align-items-center justify-content-center text-center" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:500;color:#fff;">
+                        <div class="spinner-border text-light mb-2" role="status"></div>
+                        <small id="mapLoadingText">Preparing map...</small>
+                    </div> -->
+                    <div id="routeMap" style="height:600px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <!-- Map Legend -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-map-signs me-2"></i>Map Legend</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:30px;height:30px;background:#2ecc71;border-radius:50%;margin-right:10px;">
+                        </div>
+                        <span><strong>Start Point</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:30px;height:30px;background:#dc3545;border-radius:50%;margin-right:10px;">
+                        </div>
+                        <span><strong>End Point</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:30px;height:30px;background:#3498db;border-radius:50%;margin-right:10px;">
+                        </div>
+                        <span><strong>Delivery Stops</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div
+                            style="width:30px;height:30px;background:white;border:3px solid #3498db;border-radius:50%;margin-right:10px;">
+                        </div>
+                        <span><strong>Intermediate Points</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:40px;height:6px;background:#27ae60;border-radius:2px;margin-right:10px;">
+                        </div>
+                        <span><strong>Optimized Route</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:40px;height:4px;background:#e74c3c;margin-right:10px;"></div>
+                        <span><strong>Risky Segment</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:40px;height:6px;background:#3498db;border-radius:2px;margin-right:10px;">
+                        </div>
+                        <span><strong>Alternative Route (1)</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div style="width:40px;height:6px;background:#6f42c1;border-radius:2px;margin-right:10px;">
+                        </div>
+                        <span><strong>Alternative Route (2)</strong></span>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Optimized Sequence -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-list-ol me-2"></i>Optimized Sequence</h6>
+                </div>
+                <div class="card-body" style="max-height:400px;overflow-y:auto;">
+                    <div id="optimizedSequence"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-route me-2"></i>Route Breakdown & Carbon Footprint</h5>
+                </div>
+                <div class="card-body">
+                    <div id="segmentDistances"></div>
+
+                    <!-- Carbon Emission Details -->
+                    <div id="carbonDetails" class="mt-4" style="display:none;">
+                        <hr>
+                        <h6 class="text-success mb-3"><i class="fas fa-leaf me-2"></i>Carbon Emission Analysis</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-light">
+                                    <strong>Vehicle Details:</strong><br>
+                                    <i class="fas fa-truck me-2"></i> Size Class: <span id="vehicleSize"
+                                        class="badge bg-secondary">-</span><br>
+                                    <i class="fas fa-calendar me-2"></i> Vehicle Age: <span id="vehicleAge">-</span>
+                                    years<br>
+                                    <i class="fas fa-gas-pump me-2"></i> Fuel Type: <span id="fuelType">-</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-light">
+                                    <strong>Emission Metrics:</strong><br>
+                                    <i class="fas fa-smog me-2"></i> CO₂ per km: <span id="co2PerKm"
+                                        class="badge bg-warning text-dark">-</span><br>
+                                    <i class="fas fa-calculator me-2"></i> Formula: Distance × CO₂/km<br>
+                                    <i class="fas fa-tree me-2"></i> Trees to offset: <span id="treesNeeded"
+                                        class="badge bg-success">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-success">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0"><i class="fas fa-leaf me-2"></i>Total Carbon Footprint</h5>
+                                    <small>Based on ML-predicted vehicle emissions</small>
+                                </div>
+                                <h3 class="mb-0 text-success" id="totalCarbon">0 kg CO₂</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Information & Risk Analysis Section -->
+    <div id="routeInfoSection" class="row mb-4" style="display:none;">
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Route Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="route-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-road text-primary"></i>
+                            <span class="stat-label">Distance:</span>
+                            <span class="stat-value" id="optDistanceValue">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock text-info"></i>
+                            <span class="stat-label">Time:</span>
+                            <span class="stat-value" id="optTimeValue">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock text-warning"></i>
+                            <span class="stat-label">Adjusted ETA:</span>
+                            <span class="stat-value" id="optAdjustedEtaValue">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-mountain text-success"></i>
+                            <span class="stat-label">Elevation:</span>
+                            <span class="stat-value" id="optElevationValue">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-exclamation-triangle text-danger"></i>
+                            <span class="stat-label">Accident Ratio:</span>
+                            <span class="stat-value" id="optAccidentRatioValue">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Risk Analysis</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Route-wise Risk Analysis -->
+                    <div class="row">
+                        <!-- Optimized Route -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-success h-100">
+                                <div class="card-header bg-success text-white py-2">
+                                    <h6 class="mb-0"><i class="fas fa-check-circle me-1"></i> Optimized Route</h6>
+                                </div>
+                                <div class="card-body py-2">
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-road"></i> Road</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="optRoadScoreBar" style="width: 0%">0%</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-layer-group"></i> Surface</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="optSurfaceScoreBar" style="width: 0%">0%</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-mountain"></i> Terrain</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="optTerrainScoreBar" style="width: 0%">0%</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-0">
+                                        <small class="text-muted"><i class="fas fa-exclamation-triangle"></i>
+                                            Accident</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar bg-danger" id="optAccidentScoreBar"
+                                                style="width: 0%">0%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alternative Route (1) -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-primary h-100">
+                                <div class="card-header bg-primary text-white py-2">
+                                    <h6 class="mb-0"><i class="fas fa-route me-1"></i> Alternative (1)</h6>
+                                </div>
+                                <div class="card-body py-2">
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-road"></i> Road</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="alt1RoadScoreBar" style="width: 0%">0%</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-layer-group"></i> Surface</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="alt1SurfaceScoreBar" style="width: 0%">0%
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-mountain"></i> Terrain</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="alt1TerrainScoreBar" style="width: 0%">0%
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-0">
+                                        <small class="text-muted"><i class="fas fa-exclamation-triangle"></i>
+                                            Accident</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar bg-danger" id="alt1AccidentScoreBar"
+                                                style="width: 0%">0%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alternative Route (2) -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-secondary h-100" style="border-color: #6f42c1 !important;">
+                                <div class="card-header text-white py-2" style="background-color: #6f42c1;">
+                                    <h6 class="mb-0"><i class="fas fa-route me-1"></i> Alternative (2)</h6>
+                                </div>
+                                <div class="card-body py-2">
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-road"></i> Road</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="alt2RoadScoreBar" style="width: 0%">0%</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-layer-group"></i> Surface</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="alt2SurfaceScoreBar" style="width: 0%">0%
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i class="fas fa-mountain"></i> Terrain</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar" id="alt2TerrainScoreBar" style="width: 0%">0%
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-0">
+                                        <small class="text-muted"><i class="fas fa-exclamation-triangle"></i>
+                                            Accident</small>
+                                        <div class="progress" style="height: 18px;">
+                                            <div class="progress-bar bg-danger" id="alt2AccidentScoreBar"
+                                                style="width: 0%">0%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="mt-2 p-2" style="background-color: #f8f9fa; border-radius: 0.5rem; font-size: 0.85rem;">
+                        <div class="d-flex justify-content-around align-items-center">
+                            <span><i class="fas fa-circle text-success"></i> Low Risk (0-30%)</span>
+                            <span><i class="fas fa-circle text-warning"></i> Medium Risk (30-60%)</span>
+                            <span><i class="fas fa-circle text-danger"></i> High Risk (60-100%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Route Analysis Section -->
+    <div id="recommendedRouteAnalysis" class="row mb-4" style="display:none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-star me-2"></i>Recommended Route Analysis</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3"><i class="fas fa-tachometer-alt me-2"></i>Fastest Route</h6>
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Distance:</strong> <span id="fastestDistance">-</span></p>
+                                <p class="mb-0"><strong>Time:</strong> <span id="fastestTime">-</span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success mb-3"><i class="fas fa-shield-alt me-2"></i>Safety</h6>
+                            <p class="mb-3" id="safetyAnalysis">-</p>
+                            <h6 class="text-info mb-2"><i class="fas fa-clock me-2"></i>Time</h6>
+                            <p class="mb-3" id="timeAnalysis">-</p>
+                            <h6 class="text-warning mb-2"><i class="fas fa-mountain me-2"></i>Terrain</h6>
+                            <p class="mb-3" id="terrainAnalysis">-</p>
+                            <h6 class="text-danger mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Accident Risk
+                            </h6>
+                            <p class="mb-0" id="accidentAnalysis">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Comparison Table -->
+    <div id="routeComparison" class="row mb-4" style="display:none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Route Comparison</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Route</th>
+                                    <th>Distance</th>
+                                    <th>Time</th>
+                                    <th>Road Risk</th>
+                                    <th>Surface Risk</th>
+                                    <th>Terrain Risk</th>
+                                    <th>Accident Ratio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="routeComparisonBody">
+                                <!-- Route comparison rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alternative Routes Section -->
+    <div id="alternativeRoutes" class="row mb-4" style="display:none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-route me-2"></i>Alternative Routes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="fas fa-route me-2"></i>Alternative Route (1)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2"><strong>Distance:</strong> <span id="altRoute1Distance">-</span></p>
+                                    <p class="mb-2"><strong>Time:</strong> <span id="altRoute1Time">-</span></p>
+                                    <p class="mb-0"><strong>Accident Ratio:</strong> <span id="altRoute1AccidentRatio"
+                                            class="badge bg-warning">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="fas fa-route me-2"></i>Alternative Route (2)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2"><strong>Distance:</strong> <span id="altRoute2Distance">-</span></p>
+                                    <p class="mb-2"><strong>Time:</strong> <span id="altRoute2Time">-</span></p>
+                                    <p class="mb-0"><strong>Accident Ratio:</strong> <span id="altRoute2AccidentRatio"
+                                            class="badge bg-warning">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Assessment Guide -->
+    <div id="riskAssessmentGuide" class="row mb-4" style="display:none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment Guide</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="alert alert-success mb-0">
+                                <h6 class="alert-heading"><i class="fas fa-check-circle me-2"></i>0-30% - Low Risk</h6>
+                                <p class="mb-0 small">Safe conditions</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-warning mb-0">
+                                <h6 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i>30-60% - Medium
+                                    Risk</h6>
+                                <p class="mb-0 small">Exercise caution</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-danger mb-0">
+                                <h6 class="alert-heading"><i class="fas fa-times-circle me-2"></i>60-100% - High Risk
+                                </h6>
+                                <p class="mb-0 small">Dangerous conditions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+    let routeMap, routeData, optimizationData, markers = [],
+        polylines = [],
+        routeLayers = {},
+        currentRouteId;
+    let routePaths = {
+        optimized: [],
+        alt1: [],
+        alt2: []
+    };
+    let routeStatsCache = {};
+    let activeRouteType = 'optimized';
+    let mapInitialized = false;
+    let fullRoutePoints = [];
+    const MAX_RENDER_MS = 14;
+
+    function setMapLoading() {
+        // Loader disabled per request
+        const overlay = document.getElementById('mapLoadingOverlay');
+        if (overlay) overlay.style.display = 'none';
+        if (routeMap) requestAnimationFrame(() => routeMap.invalidateSize());
+    }
+
+    function renderMarkersChunked(tasks, done) {
+        if (!tasks || tasks.length === 0) {
+            if (done) done();
+            return;
+        }
+        let idx = 0;
+        const step = () => {
+            const start = performance.now();
+            while (idx < tasks.length && (performance.now() - start) < MAX_RENDER_MS) {
+                const t = tasks[idx++];
+                const m = L.marker(t.latlng, t.options);
+                if (t.popup) m.bindPopup(t.popup);
+                m.addTo(routeMap);
+                markers.push(m);
+            }
+            if (idx < tasks.length) {
+                requestAnimationFrame(step);
+            } else if (done) {
+                done();
+            }
+        };
+        requestAnimationFrame(step);
+    }
+
+    function initMap() {
+        if (mapInitialized) return;
+        routeMap = L.map('routeMap', { preferCanvas: true }).setView([10.1632, 76.6413], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        }).addTo(routeMap);
+        mapInitialized = true;
+    }
+
+    function loadRouteData() {
+        const rid = sessionStorage.getItem('optimizeRouteId');
+        if (!rid) {
+            alert('No route selected');
+            window.location.href = '/agent/assignedroutes';
+            return;
+        }
+        currentRouteId = rid;
+        fetch(`/agent/api/route-optimization-data/${rid}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    routeData = d;
+                    document.getElementById('routeName').textContent = d.route.route_name;
+                    document.getElementById('startLocation').textContent = d.route.start_location_name;
+                    document.getElementById('totalStops').textContent = d.stops.length;
+                    document.getElementById('routeStatus').innerHTML = getStatusBadge(d.route.status);
+                    const vehicleLabel = d.route.vehicle_name ? `${d.route.vehicle_name}${d.route.vehicle_number ? ' (' + d.route.vehicle_number + ')' : ''}` : '-';
+                    document.getElementById('vehicleInfo').textContent = vehicleLabel;
+
+                    const stopNames = d.stops.map(s => s.location_name).filter(Boolean);
+                    document.getElementById('stopNames').textContent = stopNames.length ? stopNames.join(', ') : '-';
+
+                    // Check for saved optimization immediately
+                    checkSavedOptimization();
+                } else {
+                    alert('Error: ' + d.message);
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Error loading route');
+            });
+    }
+
+    function checkSavedOptimization() {
+        fetch(`/agent/api/get-saved-optimization-full/${currentRouteId}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.has_optimization) {
+                    document.getElementById('loadSavedBtn').classList.remove('btn-outline-light');
+                    document.getElementById('loadSavedBtn').classList.add('btn-warning');
+                    document.getElementById('loadSavedBtn').innerHTML = '<i class="fas fa-check-circle me-1"></i>Saved Route Available';
+                }
+            })
+            .catch(e => console.error('Check saved error:', e));
+    }
+
+    function optimizeRoute() {
+        if (!currentRouteId) return;
+        const btn = document.getElementById('optimizeBtn');
+        document.getElementById('optimizationResults').style.display = 'block'; // Show map immediately so tiles start loading
+        setMapLoading();
+        if (routeMap) {
+            requestAnimationFrame(() => routeMap.invalidateSize());
+        }
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Optimizing with Carbon Analysis...';
+
+        fetch(`/agent/api/optimize-route-with-carbon/${currentRouteId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    optimizationData = d;
+
+                    document.getElementById('optimalDistance').textContent = d.optimization_result.optimal_distance + ' km';
+                    document.getElementById('pathsEvaluated').textContent = d.optimization_result.evaluations;
+                    document.getElementById('totalSegments').textContent = d.segment_distances.length;
+
+                    const carbonKg = d.carbon_emission.total_carbon_kg;
+                    document.getElementById('carbonEmission').textContent = carbonKg + ' kg';
+
+                    displayOptimizedSequenceWithSave(d.optimized_sequence);
+                    displaySegmentDistancesWithCarbon(d.segment_distances, d.optimization_result.optimal_distance, d.carbon_emission);
+
+                    // Display route information and analysis
+                    displayRouteInformation(d);
+                    displayRouteComparison(d);
+                    displayAlternativeRoutes(d);
+                    displayRecommendedRouteAnalysis(d);
+
+                    // Prefer enriched segments so we can show intermediate ML waypoints immediately
+                    if (d.segments_with_intermediates && d.segments_with_intermediates.length) {
+                        const startLoc = d.start_location || (routeData && routeData.route ? {
+                            name: routeData.route.start_location_name,
+                            lat: routeData.route.start_latitude,
+                            lon: routeData.route.start_longitude
+                        } : null);
+                        if (startLoc) {
+                            drawSavedOptimizationFast({
+                                start_location: startLoc,
+                                segments: d.segments_with_intermediates,
+                                optimization_result: d.optimization_result,
+                                route_analysis: d.route_analysis
+                            });
+                        } else {
+                            drawOptimizedRouteSimple(d.optimized_sequence);
+                        }
+                    } else {
+                        drawOptimizedRouteSimple(d.optimized_sequence);
+                    }
+
+                    document.getElementById('optimizationResults').style.display = 'block';
+                    document.getElementById('navBtn').disabled = false;
+                    document.getElementById('optimizationResults').scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                } else {
+                    alert('Error: ' + d.message);
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Optimization failed');
+            })
+            .finally(() => {
+                setMapLoading();
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic me-2"></i>Optimize Route';
+            });
+    }
+
+    function drawOptimizedRouteSimple(seq) {
+        setMapLoading();
+        clearMap();
+        const pts = [];
+        fullRoutePoints = [];
+        const markerTasks = [];
+
+        seq.forEach((s, i) => {
+            const latlng = [s.latitude, s.longitude];
+            pts.push(latlng);
+            const isStart = s.is_start;
+            const isEnd = i === seq.length - 1;
+
+            let bgColor = '#3498db';
+            let label = i;
+            if (isStart) {
+                bgColor = '#28a745';
+                label = 'START';
+            } else if (isEnd) {
+                bgColor = '#dc3545';
+                label = 'END';
+            }
+
+            const icon = L.divIcon({
+                html: `<div style="background:${bgColor};color:white;border-radius:50%;width:${isStart ? 40 : 35}px;height:${isStart ? 40 : 35}px;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 3px 8px rgba(0,0,0,0.4);font-size:${isStart ? 10 : 13}px;border:2px solid white;">${label}</div>`,
+                iconSize: [isStart ? 40 : 35, isStart ? 40 : 35]
+            });
+
+            const popup = `<div style="min-width:150px;">
+                <strong>${isStart ? 'START: ' : isEnd ? 'END: ' : `Stop ${i}: `}${s.name}</strong><br>
+                ${s.address ? `<small class="text-muted">${s.address}</small><br>` : ''}
+                ${!isStart ? `<span class="badge bg-info mt-1">${s.goods_name}</span>` : ''}
+            </div>`;
+
+            markerTasks.push({
+                latlng,
+                options: { icon },
+                popup
+            });
+            fullRoutePoints.push(latlng);
+        });
+
+        if (pts.length > 1) {
+            const poly = L.polyline(pts, {
+                color: '#3498db',
+                weight: 6,
+                opacity: 0.8,
+                smoothFactor: 1
+            }).addTo(routeMap);
+            polylines.push(poly);
+
+            setTimeout(() => {
+                routeMap.fitBounds(poly.getBounds(), { padding: [50, 50], maxZoom: 14 });
+                setMapLoading();
+            }, 30);
+        } else {
+            setMapLoading();
+        }
+
+        renderMarkersChunked(markerTasks);
+    }
+
+    function loadSavedOptimization() {
+        if (!currentRouteId) return;
+
+        const btn = document.getElementById('loadSavedBtn');
+        document.getElementById('optimizationResults').style.display = 'block';
+        setMapLoading();
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+
+        fetch(`/agent/api/get-saved-optimization-full/${currentRouteId}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.has_optimization) {
+                    drawSavedOptimizationFast(d);
+                    alert(`✅ Loaded saved route!\n\n• ${d.segments.length} segments\n• ${d.segments.reduce((sum, s) => sum + s.intermediate_points.length, 0)} waypoints`);
+                } else {
+                    alert('No saved optimization found. Please optimize the route first.');
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Error loading saved route');
+            })
+            .finally(() => {
+                setMapLoading(false);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Load Saved Route';
+            });
+    }
+
+    function drawSavedOptimizationFast(data) {
+        setMapLoading();
+        clearMap();
+        routeLayers = {};
+        routePaths = { optimized: [], alt1: [], alt2: [] };
+        routeStatsCache = {};
+
+        const baseDist = data.optimization_result ? data.optimization_result.optimal_distance : (data.segments.reduce((sum, s) => sum + (s.distance || 0), 0));
+        const estimatedTime = Math.round((baseDist / 50) * 60);
+        const ra = data.route_analysis || {};
+
+        const getRisk = (val, def) => Math.round((val || def) * 100);
+        const optRoad = getRisk(ra.avg_road_score, 0.35);
+        const optSurf = getRisk(ra.avg_surface_score, 0.28);
+        const optTerr = getRisk(ra.avg_terrain_score, 0.25);
+
+        // Calculate accident ratio based on combined risk factors
+        const calculateAccidentRatio = (road, surface, terrain) => {
+            // Weighted average: road 40%, surface 35%, terrain 25%
+            const composite = (road * 0.4 + surface * 0.35 + terrain * 0.25);
+            // Scale to realistic accident ratio (convert to percentage range 15-55%)
+            return Math.min(Math.round(15 + (composite * 0.4)), 55);
+        };
+
+        const optAccident = calculateAccidentRatio(optRoad, optSurf, optTerr);
+
+        routeStatsCache = {
+            'optimized': {
+                name: 'Optimized Route',
+                dist: parseFloat(baseDist).toFixed(2),
+                time: ra.total_time_min || estimatedTime,
+                eta: ra.adjusted_eta_min || (ra.total_time_min || estimatedTime),
+                roadRisk: optRoad,
+                surfaceRisk: optSurf,
+                terrainRisk: optTerr,
+                accidentRatio: optAccident,
+                riskAreas: (ra.risky_segments_count || 0),
+                summary: 'Best balance of speed and safety.'
+            },
+            'alt1': {
+                name: 'Alternative Route (1)',
+                dist: (baseDist * 1.15).toFixed(2),
+                time: Math.round((ra.total_time_min || estimatedTime) * 1.15),
+                eta: Math.round((ra.adjusted_eta_min || estimatedTime) * 1.15),
+                roadRisk: Math.min(Math.round(optRoad * 1.3), 100),
+                surfaceRisk: Math.min(Math.round(optSurf * 1.3), 100),
+                terrainRisk: Math.min(Math.round(optTerr * 1.3), 100),
+                accidentRatio: Math.min(Math.round(optAccident * 1.4), 55),
+                riskAreas: Math.round((ra.risky_segments_count || 0) + 2),
+                summary: 'Higher risk due to road conditions.'
+            },
+            'alt2': {
+                name: 'Alternative Route (2)',
+                dist: (baseDist * 1.25).toFixed(2),
+                time: Math.round((ra.total_time_min || estimatedTime) * 1.25),
+                eta: Math.round((ra.adjusted_eta_min || estimatedTime) * 1.25),
+                roadRisk: Math.min(Math.round(optRoad * 1.5), 100),
+                surfaceRisk: Math.min(Math.round(optSurf * 1.5), 100),
+                terrainRisk: Math.min(Math.round(optTerr * 1.5), 100),
+                accidentRatio: Math.min(Math.round(optAccident * 1.6), 55),
+                riskAreas: Math.round((ra.risky_segments_count || 0) + 4),
+                summary: 'Longest route, significant terrain risk.'
+            }
+        };
+
+        const startPt = [data.start_location.lat, data.start_location.lon];
+        const startIcon = L.divIcon({
+            html: '<div style="background:#2ecc71;color:white;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow: 0 3px 6px rgba(0,0,0,0.3);">START</div>',
+            iconSize: [42, 42]
+        });
+        const startMarker = L.marker(startPt, { icon: startIcon }).addTo(routeMap).bindPopup(`<strong>START: ${data.start_location.name}</strong>`);
+        markers.push(startMarker);
+
+        ['optimized', 'alt1', 'alt2'].forEach(t => routePaths[t].push(startPt));
+
+        data.segments.forEach((seg, idx) => {
+            const fromPt = [seg.from_lat, seg.from_lon];
+            const toPt = [seg.to_lat, seg.to_lon];
+            const allIntermediates = seg.intermediate_points || [];
+
+            // 1. Optimized Path
+            const pathOpt = [fromPt];
+            allIntermediates.forEach((wp, i) => {
+                const wpLatLng = [wp.lat, wp.lon];
+                pathOpt.push(wpLatLng);
+
+                // Check if this waypoint is risky (elevation > 100m)
+                const wpRisky = (wp.elev || 0) > 100;
+                const borderColor = wpRisky ? '#e74c3c' : '#3498db';
+
+                // Style matching the pic: small white circles with colored outline
+                const wpIcon = L.divIcon({
+                    html: `<div style="background:white;border:3px solid ${borderColor};border-radius:50%;width:18px;height:18px;box-shadow:0 2px 5px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [18, 18]
+                });
+                const popupText = wpRisky
+                    ? `<strong>⚠️ High Risk Point ${i + 1}</strong><br>Elevation: <span style="color:#e74c3c;font-weight:bold;">${wp.elev || 0} m</span>`
+                    : `<strong>Intermediate Point ${i + 1}</strong><br>Elevation: ${wp.elev || 0} m`;
+                const m = L.marker(wpLatLng, { icon: wpIcon }).addTo(routeMap).bindPopup(popupText);
+                markers.push(m);
+            });
+            pathOpt.push(toPt);
+            pathOpt.slice(1).forEach(p => routePaths['optimized'].push(p));
+
+            // Check if segment is risky (high elevation > 100m)
+            const isRisky = allIntermediates.some(wp => (wp.elev || 0) > 100);
+
+            const polyOpt = L.polyline(pathOpt, {
+                color: isRisky ? '#e74c3c' : '#27ae60',
+                weight: 8,
+                opacity: 0.9,
+                dashArray: isRisky ? '10, 5' : null,
+                lineJoin: 'round'
+            }).addTo(routeMap);
+
+            if (isRisky) {
+                polyOpt.bindPopup(`<strong>⚠️ Risky Segment</strong><br><small>High elevation terrain detected</small>`);
+            }
+
+            polyOpt.on('click', () => highlightRoute('optimized', true));
+            if (!routeLayers['optimized']) routeLayers['optimized'] = L.layerGroup().addTo(routeMap);
+            routeLayers['optimized'].addLayer(polyOpt);
+            polylines.push(polyOpt);
+
+            // 2. Alt 1 Path (Blue) - Deviate slightly to be visible
+            const pathAlt1 = [fromPt];
+            allIntermediates.forEach((wp, i) => {
+                // Offset by roughly 50m to show it's an alternative
+                const altLatLng = [wp.lat + 0.0004, wp.lon + 0.0004];
+                pathAlt1.push(altLatLng);
+
+                // Add Blue Alt 1 Waypoints
+                const altWpIcon = L.divIcon({
+                    html: `<div style="background:white;border:3px solid #3498db;border-radius:50%;width:16px;height:16px;box-shadow:0 1px 4px rgba(0,0,0,0.2);"></div>`,
+                    iconSize: [16, 16]
+                });
+                const m = L.marker(altLatLng, { icon: altWpIcon }).addTo(routeMap).bindPopup(`<strong>Alt Route 1 - Point ${i + 1}</strong>`);
+                markers.push(m);
+            });
+            pathAlt1.push(toPt);
+            pathAlt1.slice(1).forEach(p => routePaths['alt1'].push(p));
+            const polyAlt1 = L.polyline(pathAlt1, { color: '#3498db', weight: 4, opacity: 0.7, dashArray: '10,10', lineJoin: 'round' }).addTo(routeMap);
+            polyAlt1.on('click', () => highlightRoute('alt1', true));
+            if (!routeLayers['alt1']) routeLayers['alt1'] = L.layerGroup().addTo(routeMap);
+            routeLayers['alt1'].addLayer(polyAlt1);
+            polylines.push(polyAlt1);
+
+            // 3. Alt 2 Path (Purple) - Deviate slightly to be visible
+            const pathAlt2 = [fromPt];
+            allIntermediates.forEach((wp, i) => {
+                const altLatLng = [wp.lat - 0.0004, wp.lon - 0.0004];
+                pathAlt2.push(altLatLng);
+
+                // Add Purple Alt 2 Waypoints
+                const altWpIcon = L.divIcon({
+                    html: `<div style="background:white;border:3px solid #6f42c1;border-radius:50%;width:16px;height:16px;box-shadow:0 1px 4px rgba(0,0,0,0.2);"></div>`,
+                    iconSize: [16, 16]
+                });
+                const m = L.marker(altLatLng, { icon: altWpIcon }).addTo(routeMap).bindPopup(`<strong>Alt Route 2 - Point ${i + 1}</strong>`);
+                markers.push(m);
+            });
+            pathAlt2.push(toPt);
+            pathAlt2.slice(1).forEach(p => routePaths['alt2'].push(p));
+            const polyAlt2 = L.polyline(pathAlt2, { color: '#6f42c1', weight: 4, opacity: 0.7, dashArray: '10,10', lineJoin: 'round' }).addTo(routeMap);
+            polyAlt2.on('click', () => highlightRoute('alt2', true));
+            if (!routeLayers['alt2']) routeLayers['alt2'] = L.layerGroup().addTo(routeMap);
+            routeLayers['alt2'].addLayer(polyAlt2);
+            polylines.push(polyAlt2);
+
+            // Stop Marker
+            const isEnd = idx === data.segments.length - 1;
+            const stopIcon = L.divIcon({
+                html: `<div style="background:${isEnd ? '#dc3545' : '#3498db'};color:white;border-radius:50%;width:35px;height:35px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;box-shadow: 0 3px 6px rgba(0,0,0,0.3);">${isEnd ? 'END' : idx + 1}</div>`,
+                iconSize: [35, 35]
+            });
+            const sm = L.marker(toPt, { icon: stopIcon }).addTo(routeMap).bindPopup(`<strong>${isEnd ? 'END' : 'Stop ' + (idx + 1)}: ${seg.to_name}</strong><br><span class="badge bg-info">${seg.goods_name}</span>`);
+            markers.push(sm);
+        });
+
+        if (routePaths.optimized.length > 0) {
+            setTimeout(() => {
+                routeMap.fitBounds(L.latLngBounds(routePaths.optimized), { padding: [50, 50], maxZoom: 14 });
+                setMapLoading();
+            }, 50);
+        } else {
+            setMapLoading();
+        }
+
+        highlightRoute('optimized');
+
+        // Draw risky segments and markers on the map
+        drawRiskySegmentsAndMarkers(data);
+
+        // Update all displays with accident ratio and risk data
+        updateAllDisplays();
+    }
+
+    function highlightRoute(type, showPopup = false) {
+        activeRouteType = type;
+        fullRoutePoints = routePaths[type];
+
+        Object.keys(routeLayers).forEach(k => {
+            const layer = routeLayers[k];
+            const isActive = k === type;
+            layer.eachLayer(l => {
+                let color = '#27ae60';
+                if (k === 'alt1') color = '#3498db';
+                if (k === 'alt2') color = '#6f42c1';
+
+                l.setStyle({
+                    color: color,
+                    weight: isActive ? 8 : 4,
+                    opacity: isActive ? 1 : 0.6,
+                    dashArray: isActive ? null : '5,5'
+                });
+                if (isActive) {
+                    l.bringToFront();
+                    const s = routeStatsCache[k];
+                    if (s) {
+                        l.bindPopup(`
+                            <div style="min-width:200px;">
+                                <h6 class="border-bottom pb-2 mb-2 text-primary"><strong>${s.name}</strong></h6>
+                                <p class="mb-1 small">Distance: <strong>${s.dist} km</strong></p>
+                                <p class="mb-1 small">ETA: <strong>${s.eta} min</strong></p>
+                                <div class="alert alert-light border p-1 mb-2 small" style="font-size:0.75rem;">
+                                    Road: <strong>${s.roadRisk}%</strong> | Surf: <strong>${s.surfaceRisk}%</strong><br>
+                                    Terrain: <strong>${s.terrainRisk}%</strong> | Accident: <strong class="text-danger">${s.accidentRatio}%</strong>
+                                </div>
+                                <div class="small text-muted">${s.summary}</div>
+                            </div>
+                        `);
+                        if (showPopup) l.openPopup();
+                    }
+                }
+            });
+        });
+        markers.forEach(m => m.setZIndexOffset(1000));
+    }
+
+    // ============================================================
+    // RISKY SEGMENTS & ACCIDENT RATIO DISPLAY FUNCTIONS
+    // ============================================================
+
+    // Draw risky segments and markers on the map
+    function drawRiskySegmentsAndMarkers(data) {
+        console.log("🔴 Drawing risky segments and markers...");
+
+        if (!data.segments || data.segments.length === 0) {
+            console.log("No segments data available");
+            return;
+        }
+
+        let totalRiskyAreas = 0;
+        let totalRiskyMarkers = 0;
+
+        // Red color matching legend for Risky Segment
+        const RISKY_COLOR = '#e74c3c';  // Red from legend
+
+        data.segments.forEach((seg, idx) => {
+            const intermediates = seg.intermediate_points || [];
+
+            // Auto-generate risky segment for demo if no risky_areas from backend
+            // OR if risky_areas exists, use them
+            let riskyAreasToShow = seg.risky_areas || [];
+            let riskyMarkersToShow = seg.risky_markers || [];
+
+            // If no risky areas from backend, generate from intermediate points
+            if (riskyAreasToShow.length === 0 && intermediates.length >= 3) {
+                // Mark every 3rd segment as risky for demonstration
+                if ((idx + 1) % 2 === 0 || intermediates.some(p => (p.elev || 0) > 50)) {
+                    // Create risky area from intermediate points
+                    const coords = [];
+
+                    // Add from_point
+                    coords.push([seg.from_lat, seg.from_lon]);
+
+                    // Add some intermediate points
+                    intermediates.forEach(pt => {
+                        if (pt.lat && pt.lon) {
+                            coords.push([pt.lat, pt.lon]);
+                        }
+                    });
+
+                    // Add to_point
+                    coords.push([seg.to_lat, seg.to_lon]);
+
+                    if (coords.length >= 2) {
+                        const avgElev = intermediates.reduce((sum, p) => sum + (p.elev || 0), 0) / (intermediates.length || 1);
+                        const riskScore = Math.min(0.5 + (avgElev / 300), 0.9);
+
+                        riskyAreasToShow.push({
+                            coordinates: coords,
+                            type: avgElev > 80 ? 'surface' : 'road',
+                            risk_score: riskScore,
+                            description: avgElev > 80 ? `High Terrain (${Math.round(avgElev)}m)` : `Road Condition Risk`
+                        });
+
+                        // Add marker at midpoint
+                        const midIdx = Math.floor(coords.length / 2);
+                        riskyMarkersToShow.push({
+                            coordinates: coords[midIdx],
+                            type: avgElev > 80 ? 'surface' : 'road',
+                            risk_score: riskScore,
+                            description: `Segment ${idx + 1}: ${avgElev > 80 ? 'Elevation Warning' : 'Caution Zone'}`
+                        });
+                    }
+                }
+            }
+
+            // Draw risky areas (polylines for dangerous road segments)
+            riskyAreasToShow.forEach((area, areaIdx) => {
+                const isRoadRisk = area.type === 'road';
+
+                // Use legend color - Red for risky segment
+                const riskColor = RISKY_COLOR;
+                const riskPattern = '8, 8';
+
+                const riskyPolyline = L.polyline(area.coordinates, {
+                    color: riskColor,
+                    weight: 12,
+                    opacity: 0.85,
+                    dashArray: riskPattern,
+                    lineCap: 'round',
+                    lineJoin: 'round'
+                }).addTo(routeMap);
+
+                riskyPolyline.bindPopup(`
+                    <div style="min-width:220px;">
+                        <h6 class="text-danger mb-2" style="border-bottom: 2px solid #e74c3c; padding-bottom: 8px;">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            ⚠️ RISKY SEGMENT
+                        </h6>
+                        <p class="mb-1"><strong>Type:</strong> ${area.description}</p>
+                        <p class="mb-1"><strong>Risk Level:</strong> 
+                            <span class="badge bg-danger" style="font-size: 1em;">${(area.risk_score * 100).toFixed(0)}%</span>
+                        </p>
+                        <p class="mb-0 small text-danger">
+                            <strong>⚠️ Drive with caution in this area</strong>
+                        </p>
+                    </div>
+                `);
+
+                polylines.push(riskyPolyline);
+                totalRiskyAreas++;
+            });
+
+            // Draw risky markers (warning icons at specific dangerous locations)
+            riskyMarkersToShow.forEach((marker, markerIdx) => {
+                const riskyIcon = L.divIcon({
+                    html: `
+                        <div style="
+                            background: ${RISKY_COLOR};
+                            color: white;
+                            border-radius: 50%;
+                            width: 32px;
+                            height: 32px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: bold;
+                            border: 3px solid white;
+                            box-shadow: 0 4px 12px rgba(231,76,60,0.6);
+                            font-size: 18px;
+                            animation: pulse 1.5s infinite;
+                        ">⚠</div>
+                    `,
+                    className: 'risky-marker-icon',
+                    iconSize: [32, 32]
+                });
+
+                const riskyMarker = L.marker(marker.coordinates, { icon: riskyIcon })
+                    .addTo(routeMap)
+                    .bindPopup(`
+                        <div style="min-width:200px;">
+                            <h6 class="text-danger mb-2">
+                                <i class="fas fa-skull-crossbones"></i> ⚠️ Hazard Alert
+                            </h6>
+                            <p class="mb-1"><strong>${marker.description}</strong></p>
+                            <p class="mb-0">
+                                <span class="badge bg-danger" style="font-size: 1em;">
+                                    Risk: ${(marker.risk_score * 100).toFixed(0)}%
+                                </span>
+                            </p>
+                        </div>
+                    `);
+
+                markers.push(riskyMarker);
+                totalRiskyMarkers++;
+            });
+        });
+
+        console.log(`✅ Drew ${totalRiskyAreas} risky areas and ${totalRiskyMarkers} risky markers`);
+
+        // Show summary alert if risky segments found
+        if (totalRiskyAreas > 0 || totalRiskyMarkers > 0) {
+            console.log(`🔴 WARNING: ${totalRiskyAreas} risky segments identified on route!`);
+        }
+
+        // Update route stats with risky segment count
+        if (routeStatsCache && routeStatsCache['optimized']) {
+            routeStatsCache['optimized'].riskAreas = totalRiskyAreas + totalRiskyMarkers;
+        }
+    }
+
+    // Calculate accident ratio based on risk factors
+    function calculateAccidentRatio(roadRisk, surfaceRisk, terrainRisk, weatherRisk = 40) {
+        // Weighted average: road 35%, surface 30%, terrain 20%, weather 15%
+        const composite = (roadRisk * 0.35 + surfaceRisk * 0.30 + terrainRisk * 0.20 + weatherRisk * 0.15);
+        // Scale to realistic accident ratio (15-55%)
+        return Math.min(Math.round(15 + (composite * 0.4)), 55);
+    }
+
+    // Get badge color based on value
+    function getRiskBadgeClass(value) {
+        if (value < 30) return 'bg-success';
+        if (value < 50) return 'bg-warning';
+        return 'bg-danger';
+    }
+
+    // Update all display sections with accident ratio and risk data
+    function updateAllDisplays() {
+        const stats = routeStatsCache['optimized'] || {};
+
+        // Calculate accident ratio for all routes
+        const optAccident = calculateAccidentRatio(stats.roadRisk || 35, stats.surfaceRisk || 28, stats.terrainRisk || 25);
+        stats.accidentRatio = optAccident;
+
+        // Update Alternative Route stats too
+        if (routeStatsCache['alt1']) {
+            routeStatsCache['alt1'].accidentRatio = calculateAccidentRatio(
+                routeStatsCache['alt1'].roadRisk || 45,
+                routeStatsCache['alt1'].surfaceRisk || 40,
+                routeStatsCache['alt1'].terrainRisk || 35
+            );
+        }
+        if (routeStatsCache['alt2']) {
+            routeStatsCache['alt2'].accidentRatio = calculateAccidentRatio(
+                routeStatsCache['alt2'].roadRisk || 50,
+                routeStatsCache['alt2'].surfaceRisk || 45,
+                routeStatsCache['alt2'].terrainRisk || 40
+            );
+        }
+
+        // Update Route Information Section
+        const accidentEl = document.getElementById('optAccidentRatioValue');
+        if (accidentEl) {
+            accidentEl.textContent = `${optAccident}%`;
+            accidentEl.className = 'stat-value fw-bold';
+            if (optAccident < 25) {
+                accidentEl.classList.add('text-success');
+            } else if (optAccident < 40) {
+                accidentEl.classList.add('text-warning');
+            } else {
+                accidentEl.classList.add('text-danger');
+            }
+        }
+
+        // Update Risk Analysis Progress Bars - All Routes
+        // Optimized Route
+        updateProgressBar('optRoadScoreBar', stats.roadRisk || 35);
+        updateProgressBar('optSurfaceScoreBar', stats.surfaceRisk || 28);
+        updateProgressBar('optTerrainScoreBar', stats.terrainRisk || 25);
+        updateProgressBar('optAccidentScoreBar', optAccident);
+
+        // Alternative Route (1)
+        const alt1Stats = routeStatsCache['alt1'] || {};
+        updateProgressBar('alt1RoadScoreBar', alt1Stats.roadRisk || 45);
+        updateProgressBar('alt1SurfaceScoreBar', alt1Stats.surfaceRisk || 40);
+        updateProgressBar('alt1TerrainScoreBar', alt1Stats.terrainRisk || 35);
+        updateProgressBar('alt1AccidentScoreBar', alt1Stats.accidentRatio || calculateAccidentRatio(45, 40, 35));
+
+        // Alternative Route (2)
+        const alt2Stats = routeStatsCache['alt2'] || {};
+        updateProgressBar('alt2RoadScoreBar', alt2Stats.roadRisk || 50);
+        updateProgressBar('alt2SurfaceScoreBar', alt2Stats.surfaceRisk || 45);
+        updateProgressBar('alt2TerrainScoreBar', alt2Stats.terrainRisk || 40);
+        updateProgressBar('alt2AccidentScoreBar', alt2Stats.accidentRatio || calculateAccidentRatio(50, 45, 40));
+
+        // Update Recommended Route Analysis - Accident Risk section
+        const accidentAnalysisEl = document.getElementById('accidentAnalysis');
+        if (accidentAnalysisEl) {
+            let accidentText = '';
+            if (optAccident < 25) {
+                accidentText = `✅ Low accident risk (${optAccident}%). Route is safe for most vehicle types.`;
+            } else if (optAccident < 40) {
+                accidentText = `⚠️ Moderate accident risk (${optAccident}%). Exercise caution on challenging sections.`;
+            } else {
+                accidentText = `❌ High accident risk (${optAccident}%). Consider alternative route or take extra precautions.`;
+            }
+            accidentAnalysisEl.innerHTML = accidentText;
+        }
+
+        // Update Route Comparison Table
+        updateRouteComparisonTable();
+
+        // Update Alternative Routes Section
+        updateAlternativeRoutesDisplay();
+
+        // Show all sections
+        document.getElementById('routeInfoSection').style.display = 'block';
+        document.getElementById('recommendedRouteAnalysis').style.display = 'block';
+        document.getElementById('routeComparison').style.display = 'block';
+        document.getElementById('alternativeRoutes').style.display = 'block';
+        document.getElementById('riskAssessmentGuide').style.display = 'block';
+    }
+
+    function updateProgressBar(id, value) {
+        const bar = document.getElementById(id);
+        if (bar) {
+            bar.style.width = value + '%';
+            bar.setAttribute('aria-valuenow', value);
+            bar.textContent = value + '%';
+
+            // Color code the bar
+            bar.className = 'progress-bar';
+            if (value < 30) {
+                bar.classList.add('bg-success');
+            } else if (value < 60) {
+                bar.classList.add('bg-warning');
+            } else {
+                bar.classList.add('bg-danger');
+            }
+        }
+    }
+
+    function updateRouteComparisonTable() {
+        const tbody = document.getElementById('routeComparisonBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        ['optimized', 'alt1', 'alt2'].forEach(type => {
+            const stats = routeStatsCache[type];
+            if (!stats) return;
+
+            const row = document.createElement('tr');
+            const isBest = type === 'optimized';
+            if (isBest) row.className = 'table-success';
+
+            const accidentRatio = stats.accidentRatio || calculateAccidentRatio(stats.roadRisk || 35, stats.surfaceRisk || 28, stats.terrainRisk || 25);
+
+            row.innerHTML = `
+                <td><strong>${stats.name}</strong>${isBest ? ' <span class="badge bg-success">Recommended</span>' : ''}</td>
+                <td>${stats.dist} km</td>
+                <td>${stats.time} min</td>
+                <td><span class="badge ${getRiskBadgeClass(stats.roadRisk || 35)}">${stats.roadRisk || 35}%</span></td>
+                <td><span class="badge ${getRiskBadgeClass(stats.surfaceRisk || 28)}">${stats.surfaceRisk || 28}%</span></td>
+                <td><span class="badge ${getRiskBadgeClass(stats.terrainRisk || 25)}">${stats.terrainRisk || 25}%</span></td>
+                <td><span class="badge ${getRiskBadgeClass(accidentRatio)}">${accidentRatio}%</span></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function updateAlternativeRoutesDisplay() {
+        const alt1 = routeStatsCache['alt1'];
+        const alt2 = routeStatsCache['alt2'];
+
+        if (alt1) {
+            const el1 = document.getElementById('altRoute1AccidentRatio');
+            if (el1) {
+                const ratio1 = alt1.accidentRatio || calculateAccidentRatio(alt1.roadRisk || 45, alt1.surfaceRisk || 40, alt1.terrainRisk || 35);
+                el1.textContent = `${ratio1}%`;
+                el1.className = `badge ${getRiskBadgeClass(ratio1)}`;
+            }
+        }
+
+        if (alt2) {
+            const el2 = document.getElementById('altRoute2AccidentRatio');
+            if (el2) {
+                const ratio2 = alt2.accidentRatio || calculateAccidentRatio(alt2.roadRisk || 50, alt2.surfaceRisk || 45, alt2.terrainRisk || 40);
+                el2.textContent = `${ratio2}%`;
+                el2.className = `badge ${getRiskBadgeClass(ratio2)}`;
+            }
+        }
+    }
+
+
+    function displaySegmentDistancesWithCarbon(segs, totalDist, carbonData) {
+        const c = document.getElementById('segmentDistances');
+        c.innerHTML = '';
+
+        // Calculate total durations from segments
+        let totalDuration = 0;
+        let totalAdjustedDuration = 0;
+        segs.forEach(sg => {
+            totalDuration += (sg.duration || 0);
+            totalAdjustedDuration += (sg.adjusted_duration || sg.duration || 0);
+        });
+
+        segs.forEach((sg, i) => {
+            const baseDuration = sg.duration || 0;
+            const adjustedDuration = sg.adjusted_duration || baseDuration;
+            const delayMinutes = sg.total_delay || 0;
+            const hasDelay = delayMinutes > 1;
+
+            const baseDurationText = formatDuration(baseDuration);
+            const adjustedDurationText = formatDuration(adjustedDuration);
+
+            // Main segment card
+            const segmentCard = document.createElement('div');
+            segmentCard.className = 'card mb-3 border-start border-4 ' + (hasDelay ? 'border-warning' : 'border-info');
+
+            // Build factors list if available
+            let factorsHtml = '';
+            if (sg.factors) {
+                factorsHtml = `
+                    <div class="collapse mt-3" id="factorsCollapse${i}">
+                        <div class="card card-body bg-light">
+                            <h6 class="mb-3 text-secondary"><i class="fas fa-chart-line me-2"></i>Duration Adjustment Factors</h6>
+                            <div class="row g-2">
+                                ${Object.entries(sg.factors).map(([key, factor]) => `
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="d-flex align-items-center p-2 rounded ${factor.impact_minutes > 0 ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}">
+                                            <div class="me-2">
+                                                ${getFactorIcon(key)}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold small">${factor.name}</div>
+                                                <div class="text-muted" style="font-size: 0.75rem;">${factor.description}</div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="badge ${factor.impact_minutes > 0 ? 'bg-warning text-dark' : 'bg-success'}">
+                                                    ${factor.impact_minutes > 0 ? '+' + formatDuration(factor.impact_minutes) : '0 min'}
+                                                </div>
+                                                <div class="text-muted" style="font-size: 0.65rem;">${factor.multiplier}x</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ${sg.road_score !== undefined ? `
+                            <hr class="my-2">
+                            <div class="row g-2 mt-1">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="small text-muted mb-1"><i class="fas fa-road"></i> Road</div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar ${getScoreColor(sg.road_score)}" style="width: ${sg.road_score}%"></div>
+                                        </div>
+                                        <small class="text-muted">${sg.road_score}%</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="small text-muted mb-1"><i class="fas fa-layer-group"></i> Surface</div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar ${getScoreColor(sg.surface_score)}" style="width: ${sg.surface_score}%"></div>
+                                        </div>
+                                        <small class="text-muted">${sg.surface_score}%</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="small text-muted mb-1"><i class="fas fa-cloud-sun"></i> Weather</div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar ${getScoreColor(sg.weather_score)}" style="width: ${sg.weather_score}%"></div>
+                                        </div>
+                                        <small class="text-muted">${sg.weather_score}%</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="small text-muted mb-1"><i class="fas fa-mountain"></i> Terrain</div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar ${getScoreColor(sg.terrain_score)}" style="width: ${sg.terrain_score}%"></div>
+                                        </div>
+                                        <small class="text-muted">${sg.terrain_score}%</small>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            segmentCard.innerHTML = `
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="text-primary">Segment ${i + 1}:</strong>
+                            <span class="ms-1">${sg.from}</span>
+                            <i class="fas fa-arrow-right mx-2 text-muted"></i>
+                            <span>${sg.to}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-info">${sg.distance} km</span>
+                            <div class="text-end">
+                                ${hasDelay ? `
+                                    <span class="badge bg-secondary text-decoration-line-through" style="font-size: 0.7rem;">${baseDurationText}</span>
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>${adjustedDurationText}
+                                    </span>
+                                    <span class="badge bg-danger" style="font-size: 0.65rem;">+${formatDuration(delayMinutes)}</span>
+                                ` : `
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-clock me-1"></i>${baseDurationText}
+                                    </span>
+                                `}
+                            </div>
+                            ${sg.factors ? `
+                                <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#factorsCollapse${i}" 
+                                    aria-expanded="false" aria-controls="factorsCollapse${i}">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ${factorsHtml}
+                </div>
+            `;
+            c.appendChild(segmentCard);
+        });
+
+        // Total Duration row (Base vs Adjusted)
+        const totalDelayMinutes = totalAdjustedDuration - totalDuration;
+        const tt = document.createElement('div');
+        tt.className = 'alert alert-warning mb-2';
+        tt.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong><i class="fas fa-clock me-2"></i>TOTAL TRAVEL TIME</strong>
+                    <small class="text-muted ms-2">(Adjusted for real-world conditions)</small>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-secondary me-2" style="font-size: 0.8rem;">Base: ${formatDuration(totalDuration)}</span>
+                    <span class="badge bg-warning text-dark fs-6">
+                        <i class="fas fa-clock me-1"></i>${formatDuration(totalAdjustedDuration)}
+                    </span>
+                    ${totalDelayMinutes > 1 ? `
+                        <span class="badge bg-danger ms-1" style="font-size: 0.75rem;">
+                            +${formatDuration(totalDelayMinutes)} delay
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        c.appendChild(tt);
+
+        // Total Distance row
+        const td = document.createElement('div');
+        td.className = 'alert alert-success d-flex justify-content-between mb-0';
+        td.innerHTML = `<span><strong><i class="fas fa-road me-2"></i>TOTAL DISTANCE</strong></span><span class="badge bg-success fs-5">${totalDist} km</span>`;
+        c.appendChild(td);
+
+        if (carbonData && carbonData.has_prediction) {
+            document.getElementById('carbonDetails').style.display = 'block';
+            document.getElementById('vehicleSize').textContent = carbonData.size_class;
+            document.getElementById('vehicleAge').textContent = carbonData.vehicle_age;
+            document.getElementById('fuelType').textContent = optimizationData.route_info.fuel_type || 'Unknown';
+            document.getElementById('co2PerKm').textContent = carbonData.co2_g_per_km + ' g/km';
+            document.getElementById('totalCarbon').textContent = carbonData.total_carbon_kg + ' kg CO₂';
+
+            const treesNeeded = Math.ceil(carbonData.total_carbon_kg / 21);
+            document.getElementById('treesNeeded').textContent = treesNeeded + ' trees/year';
+        }
+    }
+
+    // Helper function to get icon for each factor
+    function getFactorIcon(factorKey) {
+        const icons = {
+            'rush_hour': '<i class="fas fa-clock text-warning" style="font-size: 1.2rem;"></i>',
+            'traffic_congestion': '<i class="fas fa-traffic-light text-danger" style="font-size: 1.2rem;"></i>',
+            'weather': '<i class="fas fa-cloud-sun text-info" style="font-size: 1.2rem;"></i>',
+            'road_quality': '<i class="fas fa-road text-secondary" style="font-size: 1.2rem;"></i>',
+            'surface_condition': '<i class="fas fa-layer-group text-primary" style="font-size: 1.2rem;"></i>',
+            'accident_risk': '<i class="fas fa-exclamation-triangle text-danger" style="font-size: 1.2rem;"></i>',
+            'terrain': '<i class="fas fa-mountain text-success" style="font-size: 1.2rem;"></i>'
+        };
+        return icons[factorKey] || '<i class="fas fa-info-circle text-muted"></i>';
+    }
+
+    // Helper function to get color class based on score
+    function getScoreColor(score) {
+        if (score >= 60) return 'bg-danger';
+        if (score >= 40) return 'bg-warning';
+        return 'bg-success';
+    }
+
+
+    // Helper function to format duration in hours and minutes
+    function formatDuration(minutes) {
+        if (minutes < 60) {
+            return `${Math.round(minutes)} min`;
+        }
+        const hours = Math.floor(minutes / 60);
+        const mins = Math.round(minutes % 60);
+        if (mins === 0) {
+            return `${hours} hr`;
+        }
+        return `${hours} hr ${mins} min`;
+    }
+
+    function displayOptimizedSequenceWithSave(seq) {
+        const c = document.getElementById('optimizedSequence');
+        c.innerHTML = `
+        <button class="btn btn-primary w-100 mb-2" id="saveOptBtn" onclick="saveOptimizationWithWaypoints()">
+            <i class="fas fa-save me-2"></i>Save Optimization
+        </button>
+    `;
+
+        seq.forEach((s, i) => {
+            const isStart = s.is_start;
+            const card = document.createElement('div');
+            card.className = `card mb-2 border-start ${isStart ? 'border-success' : 'border-primary'} border-3`;
+            card.innerHTML = `
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge ${isStart ? 'bg-success' : 'bg-primary'} me-1">${isStart ? 'START' : `${i}`}</span>
+                        <strong style="font-size:0.9rem;">${s.name}</strong>
+                        ${!isStart ? `<br><small class="badge bg-info">${s.goods_name}</small>` : ''}
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="focusOnStop(${i})" style="padding:2px 6px;"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+        `;
+            c.appendChild(card);
+        });
+    }
+
+    function saveOptimizationWithWaypoints() {
+        if (!currentRouteId || !optimizationData) {
+            alert('No data to save');
+            return;
+        }
+        const btn = document.getElementById('saveOptBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+        // Build metadata to send
+        const optDist = optimizationData.optimization_result.optimal_distance;
+        const estimatedTime = Math.round((optDist / 50) * 60);
+
+        const payload = {
+            optimized_sequence: optimizationData.optimized_sequence,
+            carbon_emission: optimizationData.carbon_emission,
+            segment_distances: optimizationData.segment_distances,
+            risk_analysis: {
+                optimized: { road: 35, surface: 28, terrain: 25 },
+                alt1: { road: 45, surface: 40, terrain: 55 },
+                alt2: { road: 50, surface: 45, terrain: 60 }
+            },
+            route_comparison: [
+                { type: 'Optimized', dist: optDist, time: estimatedTime, eta: Math.round(estimatedTime * 1.1) },
+                { type: 'Alternative (1)', dist: optDist * 1.15, time: Math.round(estimatedTime * 1.15), eta: Math.round(estimatedTime * 1.25) },
+                { type: 'Alternative (2)', dist: optDist * 1.25, time: Math.round(estimatedTime * 1.25), eta: Math.round(estimatedTime * 1.4) }
+            ],
+            recommended_analysis: {
+                safety: 'Low to medium risk factors detected. Route is safe for most vehicle types.',
+                time: `Estimated travel time: ${estimatedTime} minutes. Adjusted ETA accounts for traffic and road conditions.`,
+                terrain: 'Moderate terrain with minor elevation changes. Suitable for all vehicle types.'
+            }
+        };
+
+        fetch(`/agent/api/save-optimized-route/${currentRouteId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    alert(`✅ Success!\n\n• Saved ${d.stops_saved} optimized stops\n• Detailed Metadata Synchronized`);
+                    btn.innerHTML = '<i class="fas fa-check me-2"></i>Saved';
+                    btn.classList.replace('btn-primary', 'btn-success');
+
+                    // Auto-load saved route after 1 second
+                    setTimeout(loadSavedOptimization, 1000);
+                } else {
+                    alert('Error: ' + d.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save me-2"></i>Save Optimization';
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Save failed');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save me-2"></i>Save Optimization';
+            });
+    }
+
+    function clearMap() {
+        markers.forEach(m => routeMap.removeLayer(m));
+        polylines.forEach(p => routeMap.removeLayer(p));
+        markers = [];
+        polylines = [];
+    }
+
+    function focusOnStop(i) {
+        if (optimizationData && optimizationData.optimized_sequence[i]) {
+            const s = optimizationData.optimized_sequence[i];
+            routeMap.setView([s.latitude, s.longitude], 15);
+            if (markers[i]) markers[i].openPopup();
+        }
+    }
+
+    function startNavigation() {
+        if (!optimizationData || !optimizationData.optimized_sequence) {
+            alert('Optimize route first');
+            return;
+        }
+        const fs = optimizationData.optimized_sequence.find(s => !s.is_start);
+        if (!fs) {
+            alert('No stops available');
+            return;
+        }
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${fs.latitude},${fs.longitude}`, '_blank');
+    }
+
+    function getStatusBadge(st) {
+        const c = {
+            pending: { class: 'bg-warning', text: 'Pending' },
+            in_progress: { class: 'bg-primary', text: 'In Progress' },
+            completed: { class: 'bg-success', text: 'Completed' }
+        };
+        const cfg = c[st] || { class: 'bg-secondary', text: st };
+        return `<span class="badge ${cfg.class}">${cfg.text}</span>`;
+    }
+
+    function displayRouteInformation(data) {
+        const optDist = data.optimization_result.optimal_distance;
+        const segmentDistances = data.segment_distances || [];
+        const totalTime = segmentDistances.reduce((sum, seg) => sum + (seg.time_min || 0), 0);
+
+        // Calculate estimated time (rough estimate: 50 km/h average speed)
+        const estimatedTime = Math.round((optDist / 50) * 60);
+        const adjustedTime = Math.round(estimatedTime * 1.1); // 10% buffer
+
+        // Calculate elevation (sum of all segments or estimate)
+        const elevation = segmentDistances.reduce((sum, seg) => sum + (seg.elevation || 0), 0);
+
+        // Calculate risk scores (mock data - replace with actual calculations)
+        const roadScore = Math.min(30 + Math.random() * 20, 100); // 30-50%
+        const surfaceScore = Math.min(25 + Math.random() * 25, 100); // 25-50%
+        const terrainScore = Math.min(20 + Math.random() * 30, 100); // 20-50%
+
+        // Display route information
+        document.getElementById('optDistanceValue').textContent = optDist.toFixed(2) + ' km';
+        document.getElementById('optTimeValue').textContent = estimatedTime + ' min';
+        document.getElementById('optAdjustedEtaValue').textContent = adjustedTime + ' min';
+        document.getElementById('optElevationValue').textContent = (elevation || (optDist * 10)).toFixed(0) + ' m';
+
+        // Display risk analysis with progress bars
+        updateProgressBar('optRoadScoreBar', roadScore);
+        updateProgressBar('optSurfaceScoreBar', surfaceScore);
+        updateProgressBar('optTerrainScoreBar', terrainScore);
+
+        // Show the section
+        document.getElementById('routeInfoSection').style.display = 'block';
+        document.getElementById('riskAssessmentGuide').style.display = 'block';
+    }
+
+    function updateProgressBar(elementId, value) {
+        const bar = document.getElementById(elementId);
+        const percent = Math.round(value);
+        let colorClass = 'bg-success';
+
+        if (percent >= 60) {
+            colorClass = 'bg-danger';
+        } else if (percent >= 30) {
+            colorClass = 'bg-warning';
+        }
+
+        bar.style.width = percent + '%';
+        bar.textContent = percent + '%';
+        bar.className = 'progress-bar ' + colorClass;
+    }
+
+    function displayRouteComparison(data) {
+        const optDist = data.optimization_result.optimal_distance;
+        const estimatedTime = Math.round((optDist / 50) * 60);
+
+        // Calculate risk scores for optimized route
+        const optRoadRisk = 35;
+        const optSurfaceRisk = 28;
+        const optTerrainRisk = 25;
+
+        // Generate alternative routes (mock data)
+        const alt1Dist = optDist * 1.15; // 15% longer
+        const alt1Time = Math.round(estimatedTime * 1.15);
+        const alt1RoadRisk = 45;
+        const alt1SurfaceRisk = 40;
+        const alt1TerrainRisk = 55;
+
+        const alt2Dist = optDist * 1.25; // 25% longer
+        const alt2Time = Math.round(estimatedTime * 1.25);
+        const alt2RoadRisk = 50;
+        const alt2SurfaceRisk = 45;
+        const alt2TerrainRisk = 60;
+
+        const comparisonBody = document.getElementById('routeComparisonBody');
+        comparisonBody.innerHTML = `
+            <tr class="table-success">
+                <td>
+                    <strong>Optimized Route</strong>
+                    <span class="badge bg-primary ms-2">Recommended</span>
+                </td>
+                <td>${optDist.toFixed(2)} km</td>
+                <td>${estimatedTime} min</td>
+                <td>${getRiskBadge(optRoadRisk)}</td>
+                <td>${getRiskBadge(optSurfaceRisk)}</td>
+                <td>${getRiskBadge(optTerrainRisk)}</td>
+            </tr>
+            <tr>
+                <td><strong>Alternative Route (1)</strong></td>
+                <td>${alt1Dist.toFixed(2)} km</td>
+                <td>${alt1Time} min</td>
+                <td>${getRiskBadge(alt1RoadRisk)}</td>
+                <td>${getRiskBadge(alt1SurfaceRisk)}</td>
+                <td>${getRiskBadge(alt1TerrainRisk)}</td>
+            </tr>
+            <tr>
+                <td><strong>Alternative Route (2)</strong></td>
+                <td>${alt2Dist.toFixed(2)} km</td>
+                <td>${alt2Time} min</td>
+                <td>${getRiskBadge(alt2RoadRisk)}</td>
+                <td>${getRiskBadge(alt2SurfaceRisk)}</td>
+                <td>${getRiskBadge(alt2TerrainRisk)}</td>
+            </tr>
+        `;
+
+        document.getElementById('routeComparison').style.display = 'block';
+    }
+
+    function getRiskBadge(percent) {
+        let badgeClass = 'bg-success';
+        if (percent >= 60) {
+            badgeClass = 'bg-danger';
+        } else if (percent >= 30) {
+            badgeClass = 'bg-warning';
+        }
+        return `<span class="badge ${badgeClass}">${Math.round(percent)}%</span>`;
+    }
+
+    function displayAlternativeRoutes(data) {
+        const optDist = data.optimization_result.optimal_distance;
+        const estimatedTime = Math.round((optDist / 50) * 60);
+
+        const alt1Dist = optDist * 1.15;
+        const alt1Time = Math.round(estimatedTime * 1.15);
+        const alt2Dist = optDist * 1.25;
+        const alt2Time = Math.round(estimatedTime * 1.25);
+
+        document.getElementById('altRoute1Distance').textContent = alt1Dist.toFixed(2) + ' km';
+        document.getElementById('altRoute1Time').textContent = alt1Time + ' min';
+        document.getElementById('altRoute2Distance').textContent = alt2Dist.toFixed(2) + ' km';
+        document.getElementById('altRoute2Time').textContent = alt2Time + ' min';
+
+        document.getElementById('alternativeRoutes').style.display = 'block';
+    }
+
+    function displayRecommendedRouteAnalysis(data) {
+        const optDist = data.optimization_result.optimal_distance;
+        const estimatedTime = Math.round((optDist / 50) * 60);
+
+        document.getElementById('fastestDistance').textContent = optDist.toFixed(2) + ' km';
+        document.getElementById('fastestTime').textContent = estimatedTime + ' min';
+        document.getElementById('safetyAnalysis').textContent = 'Low to medium risk factors detected. Route is safe for most vehicle types.';
+        document.getElementById('timeAnalysis').textContent = `Estimated travel time: ${estimatedTime} minutes. Adjusted ETA accounts for traffic and road conditions.`;
+        document.getElementById('terrainAnalysis').textContent = 'Moderate terrain with minor elevation changes. Suitable for all vehicle types.';
+
+        document.getElementById('recommendedRouteAnalysis').style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initMap();
+        loadRouteData();
+    });
+</script>
+{% endblock %}

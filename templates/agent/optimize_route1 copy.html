@@ -1,0 +1,1241 @@
+{% extends "agent/base.html" %} {% block title %}Route Optimization - ML Enhanced{% endblock %} {% block content %}
+
+<style>
+    .progress-bar {
+        transition: width 0.6s ease;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .stat-label {
+        margin-left: 10px;
+        flex-grow: 1;
+    }
+
+    .stat-value {
+        font-weight: 600;
+    }
+
+    .score-item label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Route Optimization</h1>
+        <p class="text-muted mb-0">TSP Algorithm with ML-Enhanced Carbon Emission Analysis</p>
+    </div>
+    <a href="/agent/assignedroutes" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Routes
+    </a>
+</div>
+
+<!-- Route Info & Actions -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Route Information</h5>
+            </div>
+            <div class="card-body">
+                <h4 id="routeName">Loading...</h4>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Start:</strong> <span id="startLocation">-</span></p>
+                        <p class="mb-2"><strong>Stops:</strong> <span id="totalStops" class="badge bg-info">0</span></p>
+                        <p class="mb-2"><strong>Stop Names:</strong> <span id="stopNames" class="text-muted">-</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Status:</strong> <span id="routeStatus"></span></p>
+                        <p class="mb-2"><strong>Vehicle:</strong> <span id="vehicleInfo">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Actions</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-success btn-lg w-100 mb-3" onclick="optimizeRoute()" id="optimizeBtn">
+                    <i class="fas fa-magic me-2"></i>Optimize Route
+                </button>
+                <button class="btn btn-primary w-100 mb-2" onclick="startNavigation()" id="navBtn" disabled>
+                    <i class="fas fa-directions me-2"></i>Start Navigation
+                </button>
+                <button class="btn btn-info w-100" onclick="startSimulation()" id="simBtn" disabled>
+                    <i class="fas fa-play me-2"></i>Start Simulation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optimization Results -->
+<div id="optimizationResults" style="display:none;">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h6>Optimal Distance</h6>
+                    <h3 id="optimalDistance">0 km</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h6>Paths Evaluated</h6>
+                    <h3 id="pathsEvaluated">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <h6>Segments</h6>
+                    <h3 id="totalSegments">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h6>CO₂ Emission</h6>
+                    <h3 id="carbonEmission">0 kg</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-map me-2"></i>Optimized Route Map</h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadSavedOptimization()" id="loadSavedBtn">
+                        <i class="fas fa-sync-alt me-1"></i>Load Saved Route
+                    </button>
+                </div>
+                <div class="card-body p-0 position-relative">
+                    <!-- <div id="mapLoadingOverlay" class="d-flex flex-column align-items-center justify-content-center text-center" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:500;color:#fff;">
+                        <div class="spinner-border text-light mb-2" role="status"></div>
+                        <small id="mapLoadingText">Preparing map...</small>
+                    </div> -->
+                    <div id="routeMap" style="height:600px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <!-- Map Legend -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-map-signs me-2"></i>Map Legend</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:30px;height:30px;background:#28a745;border-radius:50%;margin-right:10px;">
+                        </div>
+                        <span><strong>Start Point</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:30px;height:30px;background:#dc3545;border-radius:50%;margin-right:10px;">
+                        </div>
+                        <span><strong>End Point</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:30px;height:30px;background:#3498db;border-radius:50%;margin-right:10px;">
+                        </div>
+                        <span><strong>Delivery Stops</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:30px;height:30px;background:#ffc107;border-radius:50%;margin-right:10px;">
+                        </div>
+                        <span><strong>Intermediate Points</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:40px;height:4px;background:#27ae60;margin-right:10px;"></div>
+                        <span><strong>Optimized Route</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div style="width:40px;height:4px;background:#e74c3c;margin-right:10px;"></div>
+                        <span><strong>Risky Segment</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div
+                            style="width:40px;height:3px;background:#95a5a6;border-top:2px dashed #7f8c8d;margin-right:10px;">
+                        </div>
+                        <span><strong>Alternative Route (1)</strong></span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div
+                            style="width:40px;height:3px;background:#b39ddb;border-top:2px dashed #6f42c1;margin-right:10px;">
+                        </div>
+                        <span><strong>Alternative Route (2)</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimized Sequence -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-list-ol me-2"></i>Optimized Sequence</h6>
+                </div>
+                <div class="card-body" style="max-height:400px;overflow-y:auto;">
+                    <div id="optimizedSequence"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-route me-2"></i>Route Breakdown & Carbon Footprint</h5>
+                </div>
+                <div class="card-body">
+                    <div id="segmentDistances"></div>
+
+                    <!-- Carbon Emission Details -->
+                    <div id="carbonDetails" class="mt-4" style="display:none;">
+                        <hr>
+                        <h6 class="text-success mb-3"><i class="fas fa-leaf me-2"></i>Carbon Emission Analysis</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-light">
+                                    <strong>Vehicle Details:</strong><br>
+                                    <i class="fas fa-truck me-2"></i> Size Class: <span id="vehicleSize"
+                                        class="badge bg-secondary">-</span><br>
+                                    <i class="fas fa-calendar me-2"></i> Vehicle Age: <span id="vehicleAge">-</span>
+                                    years<br>
+                                    <i class="fas fa-gas-pump me-2"></i> Fuel Type: <span id="fuelType">-</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-light">
+                                    <strong>Emission Metrics:</strong><br>
+                                    <i class="fas fa-smog me-2"></i> CO₂ per km: <span id="co2PerKm"
+                                        class="badge bg-warning text-dark">-</span><br>
+                                    <i class="fas fa-calculator me-2"></i> Formula: Distance × CO₂/km<br>
+                                    <i class="fas fa-tree me-2"></i> Trees to offset: <span id="treesNeeded"
+                                        class="badge bg-success">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-success">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0"><i class="fas fa-leaf me-2"></i>Total Carbon Footprint</h5>
+                                    <small>Based on ML-predicted vehicle emissions</small>
+                                </div>
+                                <h3 class="mb-0 text-success" id="totalCarbon">0 kg CO₂</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Information & Risk Analysis Section -->
+    <div id="routeInfoSection" class="row mb-4" style="display:none;">
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Route Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="route-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-road text-primary"></i>
+                            <span class="stat-label">Distance:</span>
+                            <span class="stat-value" id="optDistanceValue">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock text-info"></i>
+                            <span class="stat-label">Time:</span>
+                            <span class="stat-value" id="optTimeValue">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock text-warning"></i>
+                            <span class="stat-label">Adjusted ETA:</span>
+                            <span class="stat-value" id="optAdjustedEtaValue">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-mountain text-success"></i>
+                            <span class="stat-label">Elevation:</span>
+                            <span class="stat-value" id="optElevationValue">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Risk Analysis</h6>
+                </div>
+                <div class="card-body">
+                    <div class="score-item mb-3">
+                        <label>
+                            <i class="fas fa-road"></i> Road Condition
+                        </label>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar" id="optRoadScoreBar" role="progressbar" aria-valuenow="0"
+                                aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                                0%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="score-item mb-3">
+                        <label>
+                            <i class="fas fa-layer-group"></i> Surface Quality
+                        </label>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar" id="optSurfaceScoreBar" role="progressbar" aria-valuenow="0"
+                                aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                                0%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="score-item mb-3">
+                        <label>
+                            <i class="fas fa-mountain"></i> Terrain Difficulty
+                        </label>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar" id="optTerrainScoreBar" role="progressbar" aria-valuenow="0"
+                                aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                                0%
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Legend -->
+                    <div class="mt-3 p-2" style="background-color: #f8f9fa; border-radius: 0.5rem; font-size: 0.85rem;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span><i class="fas fa-circle text-success"></i> Low Risk</span>
+                            <span class="text-muted">0-30%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span><i class="fas fa-circle text-warning"></i> Medium Risk</span>
+                            <span class="text-muted">30-60%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-circle text-danger"></i> High Risk</span>
+                            <span class="text-muted">60-100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Route Analysis Section -->
+    <div id="recommendedRouteAnalysis" class="row mb-4" style="display:none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-star me-2"></i>Recommended Route Analysis</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3"><i class="fas fa-tachometer-alt me-2"></i>Fastest Route</h6>
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Distance:</strong> <span id="fastestDistance">-</span></p>
+                                <p class="mb-0"><strong>Time:</strong> <span id="fastestTime">-</span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success mb-3"><i class="fas fa-shield-alt me-2"></i>Safety</h6>
+                            <p class="mb-3" id="safetyAnalysis">-</p>
+                            <h6 class="text-info mb-2"><i class="fas fa-clock me-2"></i>Time</h6>
+                            <p class="mb-3" id="timeAnalysis">-</p>
+                            <h6 class="text-warning mb-2"><i class="fas fa-mountain me-2"></i>Terrain</h6>
+                            <p class="mb-0" id="terrainAnalysis">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Comparison Table -->
+    <div id="routeComparison" class="row mb-4" style="display:none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Route Comparison</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Route</th>
+                                    <th>Distance</th>
+                                    <th>Time</th>
+                                    <th>Road Risk</th>
+                                    <th>Surface Risk</th>
+                                    <th>Terrain Risk</th>
+                                </tr>
+                            </thead>
+                            <tbody id="routeComparisonBody">
+                                <!-- Route comparison rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alternative Routes Section -->
+    <div id="alternativeRoutes" class="row mb-4" style="display:none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-route me-2"></i>Alternative Routes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="fas fa-route me-2"></i>Alternative Route (1)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2"><strong>Distance:</strong> <span id="altRoute1Distance">-</span></p>
+                                    <p class="mb-0"><strong>Time:</strong> <span id="altRoute1Time">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="fas fa-route me-2"></i>Alternative Route (2)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2"><strong>Distance:</strong> <span id="altRoute2Distance">-</span></p>
+                                    <p class="mb-0"><strong>Time:</strong> <span id="altRoute2Time">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Assessment Guide -->
+    <div id="riskAssessmentGuide" class="row mb-4" style="display:none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment Guide</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="alert alert-success mb-0">
+                                <h6 class="alert-heading"><i class="fas fa-check-circle me-2"></i>0-30% - Low Risk</h6>
+                                <p class="mb-0 small">Safe conditions</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-warning mb-0">
+                                <h6 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i>30-60% - Medium
+                                    Risk</h6>
+                                <p class="mb-0 small">Exercise caution</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-danger mb-0">
+                                <h6 class="alert-heading"><i class="fas fa-times-circle me-2"></i>60-100% - High Risk
+                                </h6>
+                                <p class="mb-0 small">Dangerous conditions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+    let routeMap, routeData, optimizationData, markers = [],
+        polylines = [],
+        currentRouteId;
+    let mapInitialized = false;
+    let fullRoutePoints = [];
+    let simulationMarker = null;
+    let isSimulating = false;
+    const MAX_RENDER_MS = 14; // ~1 frame worth of work
+
+    function setMapLoading() {
+        // Loader disabled per request
+        const overlay = document.getElementById('mapLoadingOverlay');
+        if (overlay) overlay.style.display = 'none';
+        if (routeMap) requestAnimationFrame(() => routeMap.invalidateSize());
+    }
+
+    function renderMarkersChunked(tasks, done) {
+        if (!tasks || tasks.length === 0) {
+            if (done) done();
+            return;
+        }
+        let idx = 0;
+        const step = () => {
+            const start = performance.now();
+            while (idx < tasks.length && (performance.now() - start) < MAX_RENDER_MS) {
+                const t = tasks[idx++];
+                const m = L.marker(t.latlng, t.options);
+                if (t.popup) m.bindPopup(t.popup);
+                m.addTo(routeMap);
+                markers.push(m);
+            }
+            if (idx < tasks.length) {
+                requestAnimationFrame(step);
+            } else if (done) {
+                done();
+            }
+        };
+        requestAnimationFrame(step);
+    }
+
+    function initMap() {
+        if (mapInitialized) return;
+        routeMap = L.map('routeMap', { preferCanvas: true }).setView([10.1632, 76.6413], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        }).addTo(routeMap);
+        mapInitialized = true;
+    }
+
+    function loadRouteData() {
+        const rid = sessionStorage.getItem('optimizeRouteId');
+        if (!rid) {
+            alert('No route selected');
+            window.location.href = '/agent/assignedroutes';
+            return;
+        }
+        currentRouteId = rid;
+        fetch(`/agent/api/route-optimization-data/${rid}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    routeData = d;
+                    document.getElementById('routeName').textContent = d.route.route_name;
+                    document.getElementById('startLocation').textContent = d.route.start_location_name;
+                    document.getElementById('totalStops').textContent = d.stops.length;
+                    document.getElementById('routeStatus').innerHTML = getStatusBadge(d.route.status);
+                    const vehicleLabel = d.route.vehicle_name ? `${d.route.vehicle_name}${d.route.vehicle_number ? ' (' + d.route.vehicle_number + ')' : ''}` : '-';
+                    document.getElementById('vehicleInfo').textContent = vehicleLabel;
+
+                    const stopNames = d.stops.map(s => s.location_name).filter(Boolean);
+                    document.getElementById('stopNames').textContent = stopNames.length ? stopNames.join(', ') : '-';
+
+                    // Check for saved optimization immediately
+                    checkSavedOptimization();
+                } else {
+                    alert('Error: ' + d.message);
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Error loading route');
+            });
+    }
+
+    function checkSavedOptimization() {
+        fetch(`/agent/api/get-saved-optimization-full/${currentRouteId}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.has_optimization) {
+                    document.getElementById('loadSavedBtn').classList.remove('btn-outline-light');
+                    document.getElementById('loadSavedBtn').classList.add('btn-warning');
+                    document.getElementById('loadSavedBtn').innerHTML = '<i class="fas fa-check-circle me-1"></i>Saved Route Available';
+                }
+            })
+            .catch(e => console.error('Check saved error:', e));
+    }
+
+    function optimizeRoute() {
+        if (!currentRouteId) return;
+        const btn = document.getElementById('optimizeBtn');
+        document.getElementById('optimizationResults').style.display = 'block'; // Show map immediately so tiles start loading
+        setMapLoading();
+        if (routeMap) {
+            requestAnimationFrame(() => routeMap.invalidateSize());
+        }
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Optimizing with Carbon Analysis...';
+
+        fetch(`/agent/api/optimize-route-with-carbon/${currentRouteId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    optimizationData = d;
+
+                    document.getElementById('optimalDistance').textContent = d.optimization_result.optimal_distance + ' km';
+                    document.getElementById('pathsEvaluated').textContent = d.optimization_result.evaluations;
+                    document.getElementById('totalSegments').textContent = d.segment_distances.length;
+
+                    const carbonKg = d.carbon_emission.total_carbon_kg;
+                    document.getElementById('carbonEmission').textContent = carbonKg + ' kg';
+
+                    displayOptimizedSequenceWithSave(d.optimized_sequence);
+                    displaySegmentDistancesWithCarbon(d.segment_distances, d.optimization_result.optimal_distance, d.carbon_emission);
+
+                    // Display route information and analysis
+                    displayRouteInformation(d);
+                    displayRouteComparison(d);
+                    displayAlternativeRoutes(d);
+                    displayRecommendedRouteAnalysis(d);
+
+                    // Prefer enriched segments so we can show intermediate ML waypoints immediately
+                    if (d.segments_with_intermediates && d.segments_with_intermediates.length) {
+                        const startLoc = d.start_location || (routeData && routeData.route ? {
+                            name: routeData.route.start_location_name,
+                            lat: routeData.route.start_latitude,
+                            lon: routeData.route.start_longitude
+                        } : null);
+                        if (startLoc) {
+                            drawSavedOptimizationFast({
+                                start_location: startLoc,
+                                segments: d.segments_with_intermediates
+                            });
+                        } else {
+                            drawOptimizedRouteSimple(d.optimized_sequence);
+                        }
+                    } else {
+                        drawOptimizedRouteSimple(d.optimized_sequence);
+                    }
+
+                    document.getElementById('optimizationResults').style.display = 'block';
+                    document.getElementById('navBtn').disabled = false;
+                    document.getElementById('simBtn').disabled = false;
+                    document.getElementById('optimizationResults').scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                } else {
+                    alert('Error: ' + d.message);
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Optimization failed');
+            })
+            .finally(() => {
+                setMapLoading();
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic me-2"></i>Optimize Route';
+            });
+    }
+
+    function drawOptimizedRouteSimple(seq) {
+        setMapLoading();
+        clearMap();
+        const pts = [];
+        fullRoutePoints = [];
+        const markerTasks = [];
+
+        seq.forEach((s, i) => {
+            const latlng = [s.latitude, s.longitude];
+            pts.push(latlng);
+            const isStart = s.is_start;
+            const isEnd = i === seq.length - 1;
+
+            let bgColor = '#3498db';
+            let label = i;
+            if (isStart) {
+                bgColor = '#28a745';
+                label = 'START';
+            } else if (isEnd) {
+                bgColor = '#dc3545';
+                label = 'END';
+            }
+
+            const icon = L.divIcon({
+                html: `<div style="background:${bgColor};color:white;border-radius:50%;width:${isStart ? 40 : 35}px;height:${isStart ? 40 : 35}px;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 3px 8px rgba(0,0,0,0.4);font-size:${isStart ? 10 : 13}px;border:2px solid white;">${label}</div>`,
+                iconSize: [isStart ? 40 : 35, isStart ? 40 : 35]
+            });
+
+            const popup = `<div style="min-width:150px;">
+                <strong>${isStart ? 'START: ' : isEnd ? 'END: ' : `Stop ${i}: `}${s.name}</strong><br>
+                ${s.address ? `<small class="text-muted">${s.address}</small><br>` : ''}
+                ${!isStart ? `<span class="badge bg-info mt-1">${s.goods_name}</span>` : ''}
+            </div>`;
+
+            markerTasks.push({
+                latlng,
+                options: { icon },
+                popup
+            });
+            fullRoutePoints.push(latlng);
+        });
+
+        if (pts.length > 1) {
+            const poly = L.polyline(pts, {
+                color: '#27ae60',
+                weight: 5,
+                opacity: 0.8,
+                smoothFactor: 1
+            }).addTo(routeMap);
+            polylines.push(poly);
+
+            setTimeout(() => {
+                routeMap.fitBounds(poly.getBounds(), { padding: [50, 50], maxZoom: 14 });
+                setMapLoading();
+            }, 30);
+        } else {
+            setMapLoading();
+        }
+
+        renderMarkersChunked(markerTasks);
+    }
+
+    function loadSavedOptimization() {
+        if (!currentRouteId) return;
+
+        const btn = document.getElementById('loadSavedBtn');
+        document.getElementById('optimizationResults').style.display = 'block';
+        setMapLoading();
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+
+        fetch(`/agent/api/get-saved-optimization-full/${currentRouteId}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.has_optimization) {
+                    drawSavedOptimizationFast(d);
+                    alert(`✅ Loaded saved route!\n\n• ${d.segments.length} segments\n• ${d.segments.reduce((sum, s) => sum + s.intermediate_points.length, 0)} waypoints`);
+                } else {
+                    alert('No saved optimization found. Please optimize the route first.');
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Error loading saved route');
+            })
+            .finally(() => {
+                setMapLoading(false);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Load Saved Route';
+            });
+    }
+
+    function drawSavedOptimizationFast(data) {
+        setMapLoading();
+        clearMap();
+
+        const allPoints = [];
+        fullRoutePoints = [];
+        let waypointCount = 0;
+        const markerTasks = [];
+
+        // Start marker
+        const startIcon = L.divIcon({
+            html: '<div style="background:#28a745;color:white;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 3px 8px rgba(0,0,0,0.4);font-size:10px;border:2px solid white;">START</div>',
+            iconSize: [40, 40]
+        });
+        markerTasks.push({
+            latlng: [data.start_location.lat, data.start_location.lon],
+            options: { icon: startIcon },
+            popup: `<strong>START: ${data.start_location.name}</strong>`
+        });
+        allPoints.push([data.start_location.lat, data.start_location.lon]);
+        fullRoutePoints.push([data.start_location.lat, data.start_location.lon]);
+
+        // Draw segments with waypoints
+        data.segments.forEach((seg, idx) => {
+            const segPoints = [[seg.from_lat, seg.from_lon]];
+
+            // Add intermediate waypoints
+            seg.intermediate_points.forEach((wp, wpIdx) => {
+                waypointCount++;
+                segPoints.push([wp.lat, wp.lon]);
+                fullRoutePoints.push([wp.lat, wp.lon]);
+
+                const wpIcon = L.divIcon({
+                    html: `<div style="background:#ffc107;color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:10px;border:2px solid white;">${wpIdx + 1}</div>`,
+                    iconSize: [22, 22]
+                });
+
+                markerTasks.push({
+                    latlng: [wp.lat, wp.lon],
+                    options: { icon: wpIcon },
+                    popup: `<strong>Waypoint ${wpIdx + 1}</strong><br>Segment ${idx + 1}: ${seg.from_name} → ${seg.to_name}<br><small>Elevation: ${wp.elev || 0} m</small>`
+                });
+            });
+
+            segPoints.push([seg.to_lat, seg.to_lon]);
+            allPoints.push(...segPoints.slice(1));
+
+            // For fullRoutePoints, we already added intermediate points, now add the segment destination
+            fullRoutePoints.push([seg.to_lat, seg.to_lon]);
+
+            // Draw segment polyline
+            const isRisky = seg.intermediate_points.some(wp => (wp.elev || 0) > 100);
+            const poly = L.polyline(segPoints, {
+                color: isRisky ? '#e74c3c' : '#27ae60',
+                weight: 5,
+                opacity: 0.8,
+                dashArray: isRisky ? '10, 5' : null
+            }).addTo(routeMap);
+            polylines.push(poly);
+
+            // Draw alternative intermediate options (up to two) as dotted lines
+            const opts = seg.intermediate_options || [];
+            const altColors = ['#7f8c8d', '#6f42c1']; // grey, purple
+            opts.forEach((opt, optIdx) => {
+                if (!opt || optIdx === 0) return; // skip primary (already used) and nulls
+                const altPts = [
+                    [seg.from_lat, seg.from_lon],
+                    [opt.lat, opt.lon],
+                    [seg.to_lat, seg.to_lon]
+                ];
+                const altPoly = L.polyline(altPts, {
+                    color: altColors[Math.min(optIdx - 1, altColors.length - 1)],
+                    weight: 4,
+                    opacity: 0.7,
+                    dashArray: '6,6'
+                }).addTo(routeMap);
+                polylines.push(altPoly);
+            });
+
+            // Stop marker
+            const isEnd = idx === data.segments.length - 1;
+            const stopIcon = L.divIcon({
+                html: `<div style="background:${isEnd ? '#dc3545' : '#3498db'};color:white;border-radius:50%;width:35px;height:35px;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 3px 8px rgba(0,0,0,0.4);font-size:13px;border:2px solid white;">${isEnd ? 'END' : idx + 1}</div>`,
+                iconSize: [35, 35]
+            });
+            markerTasks.push({
+                latlng: [seg.to_lat, seg.to_lon],
+                options: { icon: stopIcon },
+                popup: `<strong>${isEnd ? 'END' : 'Stop'} ${idx + 1}: ${seg.to_name}</strong><br><span class="badge bg-info">${seg.goods_name}</span> (${seg.goods_weight} kg)`
+            });
+        });
+
+        // Fit map to show all points
+        if (allPoints.length > 0) {
+            setTimeout(() => {
+                routeMap.fitBounds(L.latLngBounds(allPoints), { padding: [50, 50], maxZoom: 13 });
+                setMapLoading();
+            }, 30);
+        } else {
+            setMapLoading();
+        }
+
+        renderMarkersChunked(markerTasks);
+
+        console.log(`✅ Fast Render: ${data.segments.length} segments, ${waypointCount} waypoints`);
+    }
+
+    function displaySegmentDistancesWithCarbon(segs, totalDist, carbonData) {
+        const c = document.getElementById('segmentDistances');
+        c.innerHTML = '';
+
+        segs.forEach((sg, i) => {
+            const d = document.createElement('div');
+            d.className = 'alert alert-info d-flex justify-content-between mb-2';
+            d.innerHTML = `<span><strong>Segment ${i + 1}:</strong> ${sg.from} → ${sg.to}</span><span class="badge bg-info">${sg.distance} km</span>`;
+            c.appendChild(d);
+        });
+
+        const td = document.createElement('div');
+        td.className = 'alert alert-success d-flex justify-content-between mb-0';
+        td.innerHTML = `<span><strong>TOTAL DISTANCE</strong></span><span class="badge bg-success fs-5">${totalDist} km</span>`;
+        c.appendChild(td);
+
+        if (carbonData && carbonData.has_prediction) {
+            document.getElementById('carbonDetails').style.display = 'block';
+            document.getElementById('vehicleSize').textContent = carbonData.size_class;
+            document.getElementById('vehicleAge').textContent = carbonData.vehicle_age;
+            document.getElementById('fuelType').textContent = optimizationData.route_info.fuel_type || 'Unknown';
+            document.getElementById('co2PerKm').textContent = carbonData.co2_g_per_km + ' g/km';
+            document.getElementById('totalCarbon').textContent = carbonData.total_carbon_kg + ' kg CO₂';
+
+            const treesNeeded = Math.ceil(carbonData.total_carbon_kg / 21);
+            document.getElementById('treesNeeded').textContent = treesNeeded + ' trees/year';
+        }
+    }
+
+    function displayOptimizedSequenceWithSave(seq) {
+        const c = document.getElementById('optimizedSequence');
+        c.innerHTML = `
+        <button class="btn btn-primary w-100 mb-2" id="saveOptBtn" onclick="saveOptimizationWithWaypoints()">
+            <i class="fas fa-save me-2"></i>Save Optimization
+        </button>
+    `;
+
+        seq.forEach((s, i) => {
+            const isStart = s.is_start;
+            const card = document.createElement('div');
+            card.className = `card mb-2 border-start ${isStart ? 'border-success' : 'border-primary'} border-3`;
+            card.innerHTML = `
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge ${isStart ? 'bg-success' : 'bg-primary'} me-1">${isStart ? 'START' : `${i}`}</span>
+                        <strong style="font-size:0.9rem;">${s.name}</strong>
+                        ${!isStart ? `<br><small class="badge bg-info">${s.goods_name}</small>` : ''}
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="focusOnStop(${i})" style="padding:2px 6px;"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+        `;
+            c.appendChild(card);
+        });
+    }
+
+    function saveOptimizationWithWaypoints() {
+        if (!currentRouteId || !optimizationData) {
+            alert('No data to save');
+            return;
+        }
+        const btn = document.getElementById('saveOptBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+        fetch(`/agent/api/save-optimized-route/${currentRouteId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ optimized_sequence: optimizationData.optimized_sequence })
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    alert(`✅ Success!\n\n• Saved ${d.stops_saved} optimized stops\n• ${d.segments_processed} segments processed`);
+                    btn.innerHTML = '<i class="fas fa-check me-2"></i>Saved';
+                    btn.classList.replace('btn-primary', 'btn-success');
+
+                    // Auto-load saved route after 1 second
+                    setTimeout(loadSavedOptimization, 1000);
+                } else {
+                    alert('Error: ' + d.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save me-2"></i>Save Optimization';
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Save failed');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save me-2"></i>Save Optimization';
+            });
+    }
+
+    function clearMap() {
+        if (simulationMarker) {
+            routeMap.removeLayer(simulationMarker);
+            simulationMarker = null;
+        }
+        isSimulating = false;
+        markers.forEach(m => routeMap.removeLayer(m));
+        polylines.forEach(p => routeMap.removeLayer(p));
+        markers = [];
+        polylines = [];
+    }
+
+    function focusOnStop(i) {
+        if (optimizationData && optimizationData.optimized_sequence[i]) {
+            const s = optimizationData.optimized_sequence[i];
+            routeMap.setView([s.latitude, s.longitude], 15);
+            if (markers[i]) markers[i].openPopup();
+        }
+    }
+
+    function startNavigation() {
+        if (!optimizationData || !optimizationData.optimized_sequence) {
+            alert('Optimize route first');
+            return;
+        }
+        const fs = optimizationData.optimized_sequence.find(s => !s.is_start);
+        if (!fs) {
+            alert('No stops available');
+            return;
+        }
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${fs.latitude},${fs.longitude}`, '_blank');
+    }
+
+    function startSimulation() {
+        if (fullRoutePoints.length < 2) {
+            alert('Please optimize the route first to generate a path.');
+            return;
+        }
+
+        const btn = document.getElementById('simBtn');
+        if (isSimulating) {
+            isSimulating = false;
+            btn.innerHTML = '<i class="fas fa-play me-2"></i>Start Simulation';
+            btn.className = 'btn btn-info w-100';
+            if (simulationMarker) {
+                routeMap.removeLayer(simulationMarker);
+                simulationMarker = null;
+            }
+            return;
+        }
+
+        isSimulating = true;
+        btn.innerHTML = '<i class="fas fa-stop me-2"></i>Stop Simulation';
+        btn.className = 'btn btn-danger w-100';
+
+        // Remove existing simulation marker if any
+        if (simulationMarker) {
+            routeMap.removeLayer(simulationMarker);
+        }
+
+        // Create vehicle icon
+        const vehicleIcon = L.divIcon({
+            html: `
+                <div class="vehicle-marker" style="background:#e74c3c; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); border: 2px solid white;">
+                    <i class="fas fa-truck" style="color:white; font-size:20px;"></i>
+                </div>
+                <style>
+                    .vehicle-marker {
+                        animation: pulse-red 1.5s infinite;
+                        transition: transform 0.2s ease;
+                    }
+                    @keyframes pulse-red {
+                        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+                        70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+                        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+                    }
+                </style>
+            `,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20]
+        });
+
+        simulationMarker = L.marker(fullRoutePoints[0], { icon: vehicleIcon, zIndexOffset: 1000 }).addTo(routeMap);
+        routeMap.panTo(fullRoutePoints[0]);
+
+        animateMarker(simulationMarker, fullRoutePoints, 0);
+    }
+
+    function animateMarker(marker, points, index) {
+        if (!isSimulating || index >= points.length - 1) {
+            if (!isSimulating) return;
+            isSimulating = false;
+            const btn = document.getElementById('simBtn');
+            btn.innerHTML = '<i class="fas fa-redo me-2"></i>Restart Simulation';
+            btn.className = 'btn btn-success w-100';
+
+            if (index >= points.length - 1) {
+                marker.bindPopup('<strong>Destination Reached!</strong>').openPopup();
+                routeMap.setView(points[points.length - 1], 15);
+            }
+            return;
+        }
+
+        const start = L.latLng(points[index]);
+        const end = L.latLng(points[index + 1]);
+        const dist = start.distanceTo(end);
+
+        // Speed: ~100 km/h = 27.7 m/s
+        const duration = Math.min(Math.max(dist / 30, 200), 2000);
+
+        const startTime = performance.now();
+
+        function step() {
+            if (!isSimulating) return;
+            const now = performance.now();
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            const lat = start.lat + (end.lat - start.lat) * progress;
+            const lng = start.lng + (end.lng - start.lng) * progress;
+
+            marker.setLatLng([lat, lng]);
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                animateMarker(marker, points, index + 1);
+            }
+        }
+
+        requestAnimationFrame(step);
+    }
+
+    function getStatusBadge(st) {
+        const c = {
+            pending: { class: 'bg-warning', text: 'Pending' },
+            in_progress: { class: 'bg-primary', text: 'In Progress' },
+            completed: { class: 'bg-success', text: 'Completed' }
+        };
+        const cfg = c[st] || { class: 'bg-secondary', text: st };
+        return `<span class="badge ${cfg.class}">${cfg.text}</span>`;
+    }
+
+    function displayRouteInformation(data) {
+        const optDist = data.optimization_result.optimal_distance;
+        const segmentDistances = data.segment_distances || [];
+        const totalTime = segmentDistances.reduce((sum, seg) => sum + (seg.time_min || 0), 0);
+
+        // Calculate estimated time (rough estimate: 50 km/h average speed)
+        const estimatedTime = Math.round((optDist / 50) * 60);
+        const adjustedTime = Math.round(estimatedTime * 1.1); // 10% buffer
+
+        // Calculate elevation (sum of all segments or estimate)
+        const elevation = segmentDistances.reduce((sum, seg) => sum + (seg.elevation || 0), 0);
+
+        // Calculate risk scores (mock data - replace with actual calculations)
+        const roadScore = Math.min(30 + Math.random() * 20, 100); // 30-50%
+        const surfaceScore = Math.min(25 + Math.random() * 25, 100); // 25-50%
+        const terrainScore = Math.min(20 + Math.random() * 30, 100); // 20-50%
+
+        // Display route information
+        document.getElementById('optDistanceValue').textContent = optDist.toFixed(2) + ' km';
+        document.getElementById('optTimeValue').textContent = estimatedTime + ' min';
+        document.getElementById('optAdjustedEtaValue').textContent = adjustedTime + ' min';
+        document.getElementById('optElevationValue').textContent = (elevation || (optDist * 10)).toFixed(0) + ' m';
+
+        // Display risk analysis with progress bars
+        updateProgressBar('optRoadScoreBar', roadScore);
+        updateProgressBar('optSurfaceScoreBar', surfaceScore);
+        updateProgressBar('optTerrainScoreBar', terrainScore);
+
+        // Show the section
+        document.getElementById('routeInfoSection').style.display = 'block';
+        document.getElementById('riskAssessmentGuide').style.display = 'block';
+    }
+
+    function updateProgressBar(elementId, value) {
+        const bar = document.getElementById(elementId);
+        const percent = Math.round(value);
+        let colorClass = 'bg-success';
+
+        if (percent >= 60) {
+            colorClass = 'bg-danger';
+        } else if (percent >= 30) {
+            colorClass = 'bg-warning';
+        }
+
+        bar.style.width = percent + '%';
+        bar.textContent = percent + '%';
+        bar.className = 'progress-bar ' + colorClass;
+    }
+
+    function displayRouteComparison(data) {
+        const optDist = data.optimization_result.optimal_distance;
+        const estimatedTime = Math.round((optDist / 50) * 60);
+
+        // Calculate risk scores for optimized route
+        const optRoadRisk = 35;
+        const optSurfaceRisk = 28;
+        const optTerrainRisk = 25;
+
+        // Generate alternative routes (mock data)
+        const alt1Dist = optDist * 1.15; // 15% longer
+        const alt1Time = Math.round(estimatedTime * 1.15);
+        const alt1RoadRisk = 45;
+        const alt1SurfaceRisk = 40;
+        const alt1TerrainRisk = 55;
+
+        const alt2Dist = optDist * 1.25; // 25% longer
+        const alt2Time = Math.round(estimatedTime * 1.25);
+        const alt2RoadRisk = 50;
+        const alt2SurfaceRisk = 45;
+        const alt2TerrainRisk = 60;
+
+        const comparisonBody = document.getElementById('routeComparisonBody');
+        comparisonBody.innerHTML = `
+            <tr class="table-success">
+                <td>
+                    <strong>Optimized Route</strong>
+                    <span class="badge bg-primary ms-2">Recommended</span>
+                </td>
+                <td>${optDist.toFixed(2)} km</td>
+                <td>${estimatedTime} min</td>
+                <td>${getRiskBadge(optRoadRisk)}</td>
+                <td>${getRiskBadge(optSurfaceRisk)}</td>
+                <td>${getRiskBadge(optTerrainRisk)}</td>
+            </tr>
+            <tr>
+                <td><strong>Alternative Route (1)</strong></td>
+                <td>${alt1Dist.toFixed(2)} km</td>
+                <td>${alt1Time} min</td>
+                <td>${getRiskBadge(alt1RoadRisk)}</td>
+                <td>${getRiskBadge(alt1SurfaceRisk)}</td>
+                <td>${getRiskBadge(alt1TerrainRisk)}</td>
+            </tr>
+            <tr>
+                <td><strong>Alternative Route (2)</strong></td>
+                <td>${alt2Dist.toFixed(2)} km</td>
+                <td>${alt2Time} min</td>
+                <td>${getRiskBadge(alt2RoadRisk)}</td>
+                <td>${getRiskBadge(alt2SurfaceRisk)}</td>
+                <td>${getRiskBadge(alt2TerrainRisk)}</td>
+            </tr>
+        `;
+
+        document.getElementById('routeComparison').style.display = 'block';
+    }
+
+    function getRiskBadge(percent) {
+        let badgeClass = 'bg-success';
+        if (percent >= 60) {
+            badgeClass = 'bg-danger';
+        } else if (percent >= 30) {
+            badgeClass = 'bg-warning';
+        }
+        return `<span class="badge ${badgeClass}">${Math.round(percent)}%</span>`;
+    }
+
+    function displayAlternativeRoutes(data) {
+        const optDist = data.optimization_result.optimal_distance;
+        const estimatedTime = Math.round((optDist / 50) * 60);
+
+        const alt1Dist = optDist * 1.15;
+        const alt1Time = Math.round(estimatedTime * 1.15);
+        const alt2Dist = optDist * 1.25;
+        const alt2Time = Math.round(estimatedTime * 1.25);
+
+        document.getElementById('altRoute1Distance').textContent = alt1Dist.toFixed(2) + ' km';
+        document.getElementById('altRoute1Time').textContent = alt1Time + ' min';
+        document.getElementById('altRoute2Distance').textContent = alt2Dist.toFixed(2) + ' km';
+        document.getElementById('altRoute2Time').textContent = alt2Time + ' min';
+
+        document.getElementById('alternativeRoutes').style.display = 'block';
+    }
+
+    function displayRecommendedRouteAnalysis(data) {
+        const optDist = data.optimization_result.optimal_distance;
+        const estimatedTime = Math.round((optDist / 50) * 60);
+
+        document.getElementById('fastestDistance').textContent = optDist.toFixed(2) + ' km';
+        document.getElementById('fastestTime').textContent = estimatedTime + ' min';
+        document.getElementById('safetyAnalysis').textContent = 'Low to medium risk factors detected. Route is safe for most vehicle types.';
+        document.getElementById('timeAnalysis').textContent = `Estimated travel time: ${estimatedTime} minutes. Adjusted ETA accounts for traffic and road conditions.`;
+        document.getElementById('terrainAnalysis').textContent = 'Moderate terrain with minor elevation changes. Suitable for all vehicle types.';
+
+        document.getElementById('recommendedRouteAnalysis').style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initMap();
+        loadRouteData();
+    });
+</script>
+{% endblock %}

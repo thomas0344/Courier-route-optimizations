@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Route Optimization System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Optimize Your Routes, Maximize Efficiency</h1>
+                <p class="lead mb-4">Advanced route optimization system designed for logistics companies to streamline delivery operations and reduce costs.</p>
+                <div class="d-flex gap-3">
+                    <a href="/login" class="btn btn-light btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Get Started
+                    </a>
+                    <a href="/about" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-info-circle me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="fas fa-route" style="font-size: 15rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-5 fw-bold mb-3">Powerful Features</h2>
+                <p class="lead text-muted">Everything you need to optimize your logistics operations</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h4>Smart Location Management</h4>
+                    <p class="text-muted">Easily add and manage delivery locations with interactive maps and precise coordinates.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h4>Route Optimization</h4>
+                    <p class="text-muted">Automatically optimize routes to minimize travel time and fuel consumption.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4>Team Management</h4>
+                    <p class="text-muted">Manage drivers and agents with role-based access and real-time tracking.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Analytics & Reports</h4>
+                    <p class="text-muted">Comprehensive analytics to track performance and identify optimization opportunities.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h4>Mobile Friendly</h4>
+                    <p class="text-muted">Fully responsive design that works perfectly on all devices and screen sizes.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4>Real-time Updates</h4>
+                    <p class="text-muted">Live tracking and real-time updates for better coordination and communication.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5" style="background-color: #f8f9fa;">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">500+</div>
+                    <div>Routes Optimized</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">25%</div>
+                    <div>Cost Reduction</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">1000+</div>
+                    <div>Locations Managed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">99%</div>
+                    <div>Customer Satisfaction</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="display-5 fw-bold mb-4">Ready to Optimize Your Routes?</h2>
+                <p class="lead mb-4">Join thousands of companies already using our system to improve their logistics efficiency.</p>
+                <a href="/login" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Start Your Free Trial
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

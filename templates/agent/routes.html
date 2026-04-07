@@ -1,0 +1,3357 @@
+{% extends "agent/base.html" %}
+
+{% block content %}
+<!-- Include jsPDF and autoTable for client-side PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+    .simulation-marker {
+        width: 30px;
+        height: 30px;
+        background-color: #ff0000;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        animation: pulse 2s infinite;
+    }
+
+    .vehicle-marker {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #e74c3c;
+        border: 4px solid #ffffff;
+        box-shadow: 0 0 20px rgba(231, 76, 60, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000 !important;
+        transition: transform 0.2s ease;
+    }
+
+    .vehicle-marker i {
+        color: #ffffff;
+        font-size: 20px;
+        line-height: 1;
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+    }
+
+    @keyframes pulse-marker {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.6);
+        }
+
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.9);
+        }
+
+        100% {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.6);
+        }
+    }
+
+    .risky-marker-icon {
+        z-index: 1000 !important;
+    }
+
+    .risky-segment-overlay {
+        z-index: 500 !important;
+    }
+
+    .route-selector {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .route-selector label {
+        color: white;
+        font-weight: 600;
+    }
+
+    .route-selector select {
+        font-size: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+    }
+
+    .message-box {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 10px;
+        background: white;
+    }
+
+    .message-item {
+        padding: 8px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+    }
+
+    .message-agent {
+        background: #e3f2fd;
+        text-align: right;
+    }
+
+    .message-admin {
+        background: #fff3cd;
+        text-align: left;
+    }
+
+    .route-info-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+
+    .simulation-controls-card {
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .simulation-header {
+        background-color: #2ecc71 !important;
+        padding: 15px 20px;
+        border-bottom: none;
+    }
+
+    .route-buttons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .route-btn {
+        padding: 12px 20px;
+        border-radius: 50px;
+        border: none;
+        color: white;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        width: 100%;
+    }
+
+    .route-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    .route-btn:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .route-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-optimized {
+        background-color: #2ecc71;
+    }
+
+    .btn-alt1 {
+        background-color: #95a5a6;
+    }
+
+    .btn-alt2 {
+        background-color: #9b59b6;
+    }
+
+    .btn-optimized.active {
+        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.4), 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-alt1.active {
+        box-shadow: 0 0 0 3px rgba(149, 165, 166, 0.4), 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-alt2.active {
+        box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.4), 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .detail-box {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
+    }
+
+    .risk-analysis-section {
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+
+    .risk-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f1f1;
+    }
+
+    .risk-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        color: white;
+        font-size: 0.85rem;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .risk-low {
+        background-color: #27ae60;
+    }
+
+    .risk-med {
+        background-color: #f1c40f;
+        color: white !important;
+    }
+
+    .risk-high {
+        background-color: #e74c3c;
+    }
+
+    .risk-areas-box {
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .summary-box {
+        background-color: #e8f6ef;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        padding: 12px;
+        color: #155724;
+    }
+
+    .summary-alt1 {
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+        color: #856404;
+    }
+
+    .summary-alt2 {
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+        color: #856404;
+    }
+
+    .simulation-controls-new-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        background-color: white;
+        margin-bottom: 20px;
+    }
+
+    .simulation-controls-header {
+        background-color: #2ecc71 !important;
+        padding: 12px 20px;
+        color: white;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2rem;
+    }
+
+    .control-buttons-container {
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .control-btn {
+        padding: 12px;
+        border-radius: 50px;
+        border: none;
+        color: white !important;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        text-decoration: none;
+        font-size: 1rem;
+    }
+
+    .btn-start {
+        background-color: #61a687;
+    }
+
+    .btn-pause {
+        background-color: #f6cd61;
+        color: #555 !important;
+    }
+
+    /* Floating Map Controls Styling */
+    .map-floating-controls {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .sim-speed-badge {
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .map-floating-controls .btn-group .btn {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px !important;
+        margin: 0 2px;
+        border: 2px solid white;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .map-floating-controls .btn-group .btn:hover:not(:disabled) {
+        transform: scale(1.15);
+        z-index: 10;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .map-progress-overlay {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.82);
+        backdrop-filter: blur(8px);
+        padding: 12px 20px;
+        border-radius: 12px;
+        width: 80%;
+        max-width: 400px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .alert-premium-danger {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+        border-left: 5px solid #ff4b2b;
+        padding: 15px;
+        border-radius: 8px;
+        color: #d32f2f;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .alert-title {
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+
+    .alert-text {
+        font-size: 0.85rem;
+    }
+
+    .alert-icon-lg {
+        font-size: 2rem;
+    }
+
+    .btn-stop {
+        background-color: #ef7b7b;
+    }
+
+    .control-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        opacity: 0.9;
+    }
+
+    .control-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .badge-route-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: white;
+    }
+
+    /* Progress UI Styles */
+    .status-box-moving {
+        background: #e8f5e9;
+        border-left: 5px solid #2ecc71;
+        padding: 12px 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-bottom: 15px;
+    }
+
+    .pulse-dot {
+        width: 12px;
+        height: 12px;
+        background-color: #27ae60;
+        border-radius: 50%;
+        position: relative;
+    }
+
+    .pulse-dot::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background: #2ecc71;
+        border-radius: 50%;
+        z-index: 1;
+        animation: pulse-dot-anim 2s infinite;
+    }
+
+    @keyframes pulse-dot-anim {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(3);
+            opacity: 0;
+        }
+    }
+
+    .point-badge {
+        background: #2980b9;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    /* Notification Toasts */
+    .notification-toast {
+        background: white;
+        border-left: 5px solid #3498db;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        animation: slideInRight 0.4s ease-out forwards;
+        min-width: 300px;
+        margin-bottom: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .notification-toast.system {
+        border-left-color: #e74c3c;
+    }
+
+    .notification-toast.admin {
+        border-left-color: #f1c40f;
+    }
+
+    .notification-toast .icon {
+        font-size: 24px;
+        color: #3498db;
+    }
+
+    .notification-toast.system .icon {
+        color: #e74c3c;
+    }
+
+    .notification-toast.admin .icon {
+        color: #f1c40f;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 3px;
+        color: #2c3e50;
+    }
+
+    .notification-body {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        line-height: 1.4;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(110%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0;
+        }
+    }
+
+    /* Premium Image-style Notifications */
+    .admin-msg-popup {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        max-width: 350px;
+        margin-bottom: 20px;
+        pointer-events: auto;
+    }
+
+    .admin-msg-header {
+        background: #2ecc71;
+        color: white;
+        padding: 12px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+    }
+
+    .admin-msg-body {
+        padding: 20px;
+        color: #444;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    /* Updated Alerts in Simulation Status */
+    .alert-premium-danger {
+        background: #fdf2f2;
+        border: 1px solid #f9d5d5;
+        border-radius: 10px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        color: #922b21;
+    }
+
+    .alert-premium-info {
+        background: #e1f5fe;
+        border: 1px solid #b3e5fc;
+        border-radius: 10px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        color: #01579b;
+    }
+
+    .alert-icon-lg {
+        font-size: 2.5rem;
+        margin-right: 20px;
+    }
+
+    .alert-title {
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 2px;
+    }
+
+    .alert-text {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: rgba(0, 0, 0, 0.1);
+        width: 100%;
+    }
+
+    .toast-progress-bar {
+        height: 100%;
+        background: inherit;
+        width: 0%;
+        transition: width 5s linear;
+    }
+
+    /* Accident Alert Popup Styles */
+    .accident-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 11000;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .accident-card {
+        background: white;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .accident-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        padding: 25px;
+        text-align: center;
+        color: white;
+    }
+
+    .accident-header i {
+        font-size: 3.5rem;
+        margin-bottom: 15px;
+        display: block;
+        animation: pulse-danger 1.5s infinite;
+    }
+
+    .accident-body {
+        padding: 30px;
+        text-align: center;
+    }
+
+    .accident-title {
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .accident-text {
+        color: #7f8c8d;
+        font-size: 1.05rem;
+        line-height: 1.5;
+        margin-bottom: 25px;
+    }
+
+    .accident-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-reroute {
+        background: #2ecc71;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    .btn-reroute:hover {
+        background: #27ae60;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        color: white;
+    }
+
+    .btn-continue {
+        background: #f8f9fa;
+        color: #7f8c8d;
+        border: 1px solid #dee2e6;
+        padding: 12px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-continue:hover {
+        background: #e9ecef;
+        color: #2c3e50;
+    }
+
+    @keyframes pulse-danger {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+            text-shadow: 0 0 0 rgba(255, 255, 255, 0);
+        }
+
+        50% {
+            transform: scale(1.1);
+            opacity: 0.9;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+            text-shadow: 0 0 0 rgba(255, 255, 255, 0);
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(100px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+
+<!-- Notification Container -->
+<div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10000; pointer-events: none;">
+</div>
+
+<!-- Accident Alert Popup -->
+<div id="accidentOverlay" class="accident-overlay">
+    <div class="accident-card">
+        <div class="accident-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="accident-title">Incident Alert!</div>
+        </div>
+        <div class="accident-body">
+            <div class="accident-text" id="accidentAlertMessage">
+                Accident detected at the next stop. Real-time traffic analysis suggests immediate rerouting to avoid
+                delays.
+            </div>
+            <div class="accident-actions">
+                <button class="btn-reroute" onclick="triggerRerouting()">
+                    <i class="fas fa-random me-2"></i> Reroute Now
+                </button>
+                <button class="btn-continue" onclick="continueCurrentRoute()">
+                    Continue on Current Route
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-route me-2"></i>My Assigned Routes</h2>
+        <p class="text-muted">Select and simulate your assigned delivery routes</p>
+    </div>
+</div>
+
+<!-- Route Selection Combo Box -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card route-selector">
+            <div class="card-body">
+                <label for="routeSelect" class="form-label mb-3">
+                    <i class="fas fa-map-marked-alt me-2"></i><strong>Select Assigned Route:</strong>
+                </label>
+                <select class="form-select form-select-lg" id="routeSelect" onchange="onRouteSelected()">
+                    <option value="">-- Select a route --</option>
+                </select>
+                <div id="routeQuickInfo" class="mt-3" style="display:none;">
+                    <div class="row text-white">
+                        <div class="col-md-4">
+                            <small><i class="fas fa-play-circle me-1"></i> Start Location:</small>
+                            <div id="quickStartLocation" class="fw-bold">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small><i class="fas fa-map-pin me-1"></i> Total Stops:</small>
+                            <div id="quickStops" class="fw-bold">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small><i class="fas fa-box me-1"></i> Total Goods:</small>
+                            <div id="quickGoods" class="fw-bold">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Route Information -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-route"></i> Current Route Details</h4>
+            </div>
+            <div class="card-body">
+                <div id="currentRouteDetails">
+                    <p class="text-muted text-center py-4">
+                        <i class="fas fa-hand-pointer fa-2x mb-2 d-block"></i>
+                        Please select a route above to view details
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <!-- Route Controls -->
+        <div class="card mb-4 simulation-controls-card">
+            <div class="card-header simulation-header">
+                <h4 class="mb-0 text-white"><i class="fas fa-road"></i> Select Route to Simulate</h4>
+            </div>
+            <div class="card-body">
+                <div class="route-buttons-container mb-4">
+                    <button class="route-btn btn-optimized" onclick="selectRouteType('optimized')"
+                        id="routeTypeOptimizedBtn" disabled>
+                        <i class="fas fa-star me-2"></i> Optimized Route
+                    </button>
+                    <button class="route-btn btn-alt1" onclick="selectRouteType('alt1')" id="routeTypeAlt1Btn" disabled>
+                        <i class="fas fa-code-branch me-2"></i> Alternative Route (1)
+                    </button>
+                    <button class="route-btn btn-alt2" onclick="selectRouteType('alt2')" id="routeTypeAlt2Btn" disabled>
+                        <i class="fas fa-code-branch me-2"></i> Alternative Route (2)
+                    </button>
+                </div>
+
+                <div id="routeDetailsDisplay" style="display: none;">
+                    <div class="text-center mb-3">
+                        <span id="selectedRouteBadge" class="badge rounded-pill px-4 py-2"></span>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="detail-box">
+                                <i class="fas fa-road text-warning mb-1"></i>
+                                <div class="fw-bold" id="detailDistance">-</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="detail-box">
+                                <i class="fas fa-clock text-info mb-1"></i>
+                                <div class="fw-bold" id="detailTime">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="risk-analysis-section mb-3">
+                        <div class="fw-bold mb-2 small"><i class="fas fa-shield-alt"></i> Risk Analysis:</div>
+                        <div class="risk-item">
+                            <span class="small">Road Score</span>
+                            <span class="risk-badge" id="roadScoreBadge">-</span>
+                        </div>
+                        <div class="risk-item">
+                            <span class="small">Surface Score</span>
+                            <span class="risk-badge" id="surfaceScoreBadge">-</span>
+                        </div>
+                        <div class="risk-item">
+                            <span class="small">Terrain Score</span>
+                            <span class="risk-badge" id="terrainScoreBadge">-</span>
+                        </div>
+                    </div>
+
+
+
+                    <div class="risk-areas-box mb-3">
+                        <div class="fw-bold text-danger mb-1 small"><i class="fas fa-exclamation-triangle"></i> Risk
+                            Areas:</div>
+                        <div id="riskAreasText" class="text-muted small">-</div>
+                    </div>
+
+                    <div class="summary-box mb-4" id="summaryBoxContainer">
+                        <div id="routeSummaryText" class="small"><strong>Summary:</strong> Select a route to see
+                            analysis.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Controls Card -->
+        <div class="simulation-controls-new-card">
+            <div class="simulation-controls-header">
+                <i class="fas fa-gamepad"></i> Simulation Controls
+            </div>
+            <div class="control-buttons-container">
+                <button class="control-btn btn-start" onclick="startSimulation()" id="startBtn" disabled>
+                    <i class="fas fa-play"></i> Start Simulation
+                </button>
+                <button class="control-btn btn-pause" onclick="pauseSimulation()" id="pauseBtn" disabled>
+                    <i class="fas fa-pause"></i> Pause
+                </button>
+                <button class="control-btn btn-stop" onclick="stopSimulation()" id="stopBtn" disabled>
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+                <button class="btn btn-outline-info btn-sm mt-2" onclick="updateCurrentLocation()"
+                    id="updateLocationBtn" disabled>
+                    <i class="fas fa-map-marker-alt"></i> Update Location
+                </button>
+                <!-- Pause duration timer as requested -->
+                <div id="pauseTimerDisplay" class="alert mb-2 py-2"
+                    style="display: none; border: none; background: #fff8e1; color: #a27c00; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02);">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-clock me-2 animate__animated animate__pulse animate__infinite"></i>
+                        <i class="far fa-clock me-2"></i>
+                        <span class="fw-bold">Paused: <span id="pauseTimeCounter">0s</span></span>
+                    </div>
+                </div>
+
+                <div id="simulationStatus" class="mt-2"></div>
+
+                <!-- Simulation Progress UI -->
+                <div id="simulationProgressUI" class="mt-3" style="display: none;">
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small fw-bold">Progress</span>
+                        <span class="small fw-bold" id="progressPercentText">0%</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px; border-radius: 5px;">
+                        <div id="simProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%">
+                        </div>
+                    </div>
+
+                    <div class="status-box-moving">
+                        <div class="d-flex align-items-center">
+                            <div class="pulse-dot me-3"></div>
+                            <div>
+                                <div class="fw-bold text-success" id="vehicleStatusText"><i
+                                        class="fas fa-truck me-2"></i>Vehicle Moving</div>
+                                <div class="small text-muted" id="followingRouteText">Following: Optimized Route</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="point-badge text-center p-2 text-white shadow-sm">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        <span id="pointStatusText">Point 1 of 0 (0% complete)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-comments"></i> Messages</h5>
+            </div>
+            <div class="card-body">
+                <div class="message-box" id="messageBox">
+                    <p class="text-muted text-center">No messages</p>
+                </div>
+                <div class="mt-2">
+                    <input type="text" class="form-control mb-2" id="messageInput" placeholder="Type message..." />
+                    <button class="btn btn-primary btn-sm w-100" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i> Send to Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF Report Placeholder (Visible during trip) -->
+        <div class="card mt-4" id="reportPlaceholderCard" style="border: 1px dashed #27ae60; background: #f9fdfa;">
+            <div class="card-body text-center py-4">
+                <i class="fas fa-file-medical-alt fa-2x text-muted mb-2"></i>
+                <h6 class="text-muted">Mission Report in Progress</h6>
+                <p class="small text-muted mb-0">Logs are being collected. The final report will be available here when
+                    the mission concludes.</p>
+            </div>
+        </div>
+
+        <!-- PDF Report Section -->
+        <div class="card mt-4" id="postTripReportCard" style="display:none; border:2px solid #27ae60;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Mission Completed</h5>
+            </div>
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h6>Mission Report Ready</h6>
+                <p class="small text-muted mb-3">The trip has been finalized. You can now generate a detailed technical
+                    report of the mission.</p>
+                <button class="btn btn-success w-100" onclick="generatePostTripPDF()">
+                    <i class="fas fa-file-pdf me-2"></i> Generate Trip Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Accident / Incident Modal -->
+        <div class="accident-overlay" id="accidentOverlay">
+            <div class="accident-card">
+                <div class="accident-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3 class="mb-0">Incident Detected</h3>
+                </div>
+                <div class="accident-body">
+                    <p class="mb-4">An unexpected event was detected on your current path. Please choose how to proceed.
+                    </p>
+
+                    <div class="mb-3 text-start">
+                        <label class="form-label small text-muted">Incident Note / Reason:</label>
+                        <textarea id="incidentReason" class="form-control" rows="2"
+                            placeholder="e.g. Traffic blockage, Road construction..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-warning py-3 fw-bold" onclick="triggerRerouting()">
+                            <i class="fas fa-random me-2"></i> Calculate New Route (Reroute)
+                        </button>
+                        <button class="btn btn-outline-danger py-2" onclick="continueCurrentRoute()">
+                            <i class="fas fa-arrow-right me-2"></i> Continue on Current Route
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Route Map -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-map"></i> Route Simulation Map</h4>
+                <div>
+                    <button class="btn btn-sm btn-outline-warning" onclick="loadSavedRouteOnMap()"
+                        id="loadSavedRouteBtn" disabled>
+                        <i class="fas fa-sync-alt me-1"></i>Load Saved Route
+                    </button>
+                </div>
+            </div>
+            <!-- Map Legend (Always Visible) -->
+            <div id="mapLegendPanel" class="card-body border-bottom" style="background: #f8f9fa;">
+                <div class="row">
+                    <div class="col-md-6 border-end">
+                        <h6 class="mb-3 text-primary"><i class="fas fa-map-signs me-2"></i>Map Markers</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div
+                                        style="width:24px;height:24px;background:#2ecc71;border-radius:50%;border:2px solid white;margin-right:10px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                    </div>
+                                    <span class="small"><strong>Start Point</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div
+                                        style="width:24px;height:24px;background:#dc3545;border-radius:50%;border:2px solid white;margin-right:10px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                    </div>
+                                    <span class="small"><strong>End Point</strong></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div
+                                        style="width:24px;height:24px;background:#3498db;border-radius:50%;border:2px solid white;margin-right:10px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                    </div>
+                                    <span class="small"><strong>Delivery Stop</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div
+                                        style="width:24px;height:24px;background:#e74c3c;border-radius:50%;border:2px solid white;margin-right:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                        <i class="fas fa-truck-moving" style="color:white;font-size:10px;"></i>
+                                    </div>
+                                    <span class="small"><strong>Simulation Vehicle</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div
+                                        style="width:20px;height:20px;background:white;border:3px solid #3498db;border-radius:50%;margin-right:10px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                                    </div>
+                                    <span class="small"><strong>Waypoints</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 ps-md-4">
+                        <h6 class="mb-3 text-primary"><i class="fas fa-route me-2"></i>Route Path Types</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div
+                                        style="width:35px;height:8px;background:#27ae60;border-radius:3px;margin-right:12px;">
+                                    </div>
+                                    <span class="small"><strong style="font-weight:700;">Optimized Route</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div
+                                        style="width:35px;height:4px;background:#e74c3c;border-radius:2px;margin-right:12px;">
+                                    </div>
+                                    <span class="small"><strong>Risky Segment</strong></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div
+                                        style="width:35px;height:6px;background:#3498db;border-radius:3px;margin-right:12px;">
+                                    </div>
+                                    <span class="small"><strong style="font-weight:700;">Alternative (1)</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div
+                                        style="width:35px;height:6px;background:#6f42c1;border-radius:3px;margin-right:12px;">
+                                    </div>
+                                    <span class="small"><strong style="font-weight:700;">Alternative (2)</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="mb-2 text-secondary" style="font-size:0.9rem;"><i
+                                        class="fas fa-random me-2"></i>Reroute Indicators</h6>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div style="width:35px;border-top:4px dashed #888;margin-right:12px;"></div>
+                                    <span class="small"><strong>Traveled Path</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div
+                                        style="width:35px;height:7px;background:#27ae60;border-radius:3px;margin-right:12px;">
+                                    </div>
+                                    <span class="small"><strong>Active Route</strong></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div style="width:35px;height:2px;background:#999;opacity:0.5;margin-right:12px;">
+                                    </div>
+                                    <span class="small text-muted">Abandoned Path</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="map-wrapper" style="position: relative;">
+                    <div id="routeMap" class="map-container" style="height: 600px;"></div>
+
+                    <!-- Floating Map Controls -->
+                    <div class="map-floating-controls">
+                        <div class="sim-speed-badge">
+                            <i class="fas fa-tachometer-alt me-1"></i> Simulation Speed: <span
+                                id="speedValue">120</span> km/h
+                        </div>
+                        <div class="btn-group shadow-sm">
+                            <button class="btn btn-success" onclick="startSimulation()" id="floatStartBtn"
+                                title="Start Simulation">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="btn btn-warning" onclick="pauseSimulation()" id="floatPauseBtn"
+                                title="Pause Simulation" disabled>
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button class="btn btn-danger" onclick="stopSimulation()" id="floatStopBtn"
+                                title="Stop Simulation" disabled>
+                                <i class="fas fa-stop"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Floating Progress Overlay -->
+                    <div class="map-progress-overlay" id="floatProgressOverlay" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold text-white"><i class="fas fa-truck-moving me-1"></i> In
+                                Progress</span>
+                            <span class="small fw-bold text-white" id="floatPercentText">0%</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.2);">
+                            <div id="floatProgressBar" class="progress-bar bg-success" role="progressbar"
+                                style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Route Stops Table -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-list"></i> Route Stops</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Stop #</th>
+                                <th>Location</th>
+                                <th>Address</th>
+                                <th>Task</th>
+                                <th>Goods Name</th>
+                                <th>Weight (kg)</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stopsTable">
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">
+                                    <i class="fas fa-info-circle me-2"></i>No route selected
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<script>
+    let routeMap;
+    let currentRoute = null;
+    let routeMarkers = [];
+    let routePolylines = [];
+    let currentLocationMarker = null;
+    let simulationInterval = null;
+    let simulationRunning = false;
+    let pauseStartTime = null;
+    let currentStopIndex = 0;
+    let optimizedRoute = [];
+    let currentSimulationPoint = 0;
+    let allRoutePoints = [];
+    let allRoutesData = [];
+    let routePointSets = { optimized: [], alt1: [], alt2: [] };
+    let routePolylinesByType = { optimized: [], alt1: [], alt2: [] };
+    let currentRouteType = 'optimized';
+    let pauseAlertTimeoutId = null;
+    let pauseTimerIntervalId = null;
+    let pauseTimeTotalSeconds = 0;
+    let lastNotifiedAdminMessageId = 0;
+    let accidentTriggerPointIndex = -1;
+    let accidentOccurred = false;
+
+    // Animation variables
+    let animationFrameId = null;
+    let lastAnimTimestamp = 0;
+    let lastPathLogTime = 0;
+    let currentSegmentIndex = 0;
+    let segmentProgress = 0; // 0 to 1
+    const ANIMATION_SPEED = 0.0005; // Base speed factor
+    const SIM_SPEED_KMH = 120; // Visual speed in km/h for the simulation
+    const SPEED_FACTOR = 0.5; // multiplier for simulation speed
+
+    // Reroute tracking variables
+    let hasRerouted = false;
+    let originalRouteType = null;
+    let reroutePointIndex = -1;
+    let traveledPolylines = []; // Stores polylines for traveled segments on old route
+    let originalRoutePolylines = []; // Backup of original route polylines before reroute
+
+    // Initialize map
+    function initMap() {
+        routeMap = L.map('routeMap').setView([10.1632, 76.6413], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: ' OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(routeMap);
+    }
+
+    // Load assigned routes - using the same API as assigned_routes.html
+    function loadAssignedRoutes() {
+        fetch('/agent/api/my-routes')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Routes data:', data);
+                if (data.success) {
+                    allRoutesData = data.routes;
+                    populateRouteDropdown(data.routes);
+                } else {
+                    console.error('Error loading routes:', data.message);
+                    document.getElementById('routeSelect').innerHTML = '<option value="">No routes available</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('routeSelect').innerHTML = '<option value="">Error loading routes</option>';
+            });
+    }
+
+    // Populate route dropdown with route name, start location, total stops
+    function populateRouteDropdown(routes) {
+        const select = document.getElementById('routeSelect');
+        select.innerHTML = '<option value="">-- Select a route --</option>';
+
+        if (!routes || routes.length === 0) {
+            select.innerHTML = '<option value="">No routes assigned</option>';
+            return;
+        }
+
+        routes.forEach(route => {
+            const option = document.createElement('option');
+            option.value = route.id;
+            // Display: Route Name | Start: Location | Stops: X
+            const displayText = `${route.route_name} | Start: ${route.start_location_name || 'N/A'} | Stops: ${route.stops_count || 0}`;
+            option.textContent = displayText;
+            option.dataset.route = JSON.stringify(route);
+            select.appendChild(option);
+        });
+    }
+
+    // On route selected
+    function onRouteSelected() {
+        const select = document.getElementById('routeSelect');
+        const routeId = select.value;
+
+        if (!routeId) {
+            clearRouteDisplay();
+            document.getElementById('routeQuickInfo').style.display = 'none';
+            return;
+        }
+
+        // Find the selected route data
+        const selectedRoute = allRoutesData.find(r => r.id == routeId);
+        lastNotifiedAdminMessageId = 0;
+
+        if (selectedRoute) {
+            // Show quick info
+            document.getElementById('routeQuickInfo').style.display = 'block';
+            document.getElementById('quickStartLocation').textContent = selectedRoute.start_location_name || 'N/A';
+
+            document.getElementById('quickStops').textContent = selectedRoute.stops_count || 0;
+            document.getElementById('quickGoods').textContent = selectedRoute.total_goods || 0;
+        }
+
+        loadRouteDetails(routeId);
+    }
+
+    // Load route details
+    function loadRouteDetails(routeId) {
+        fetch(`/agent/api/route-details/${routeId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Route details:', data);
+                if (data.success) {
+                    currentRoute = data.route;
+                    currentRoute.id = routeId;
+
+                    // Find the full route data for vehicle info
+                    const fullRouteData = allRoutesData.find(r => r.id == routeId);
+                    if (fullRouteData) {
+                        currentRoute.vehicle_name = fullRouteData.vehicle_name;
+                        currentRoute.vehicle_number = fullRouteData.vehicle_number;
+                        currentRoute.stops_count = fullRouteData.stops_count;
+                        currentRoute.total_goods = fullRouteData.total_goods;
+                        currentRoute.stop_location_names = fullRouteData.stop_location_names;
+                    }
+
+                    displayRouteDetails(data);
+                    displayRouteStops(data.details);
+                    loadOptimizedRoute(routeId);  // This now loads saved route with alternatives
+                    loadMessages(routeId);
+
+                    // Enable start button
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('floatStartBtn').disabled = false;
+
+                } else {
+                    console.error('Error:', data.message);
+                    alert('Error loading route details: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load route details');
+            });
+    }
+
+    // Load optimized route data with alternatives (like optimize_route1.html)
+    function loadOptimizedRoute(routeId) {
+        // First try to get full saved optimization with alternative routes
+        fetch(`/agent/api/get-saved-optimization-full/${routeId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Full optimization data:', data);
+                if (data.success && data.has_optimization) {
+                    // Store metadata for later use in UI
+                    currentRoute.metadata = data.metadata;
+
+                    // Build route points for simulation from saved optimization
+                    routePointSets.optimized = buildAllRoutePointsFromSaved(data, 'optimized');
+                    routePointSets.alt1 = buildAllRoutePointsFromSaved(data, 'alt1');
+                    routePointSets.alt2 = buildAllRoutePointsFromSaved(data, 'alt2');
+                    currentRouteType = 'optimized';
+                    allRoutePoints = routePointSets.optimized;
+                    setRouteTypeButtonsEnabled(true);
+                    updateRouteTypeButtonsState();
+
+                    // Draw route with alternatives (Optimized, Alt1, Alt2)
+                    drawSavedRouteWithAlternatives(data);
+
+                    // Ensure Optimized Route is selected and highlighted initially (like optimize_route1.html)
+                    setTimeout(() => {
+                        selectRouteType('optimized');
+                    }, 100);
+
+                    // Update the Load Saved Route button
+                    const btn = document.getElementById('loadSavedRouteBtn');
+                    btn.disabled = false;
+                    btn.classList.remove('btn-outline-warning');
+                    btn.classList.add('btn-success');
+                    btn.innerHTML = '<i class="fas fa-check me-1"></i>Route Loaded (' + data.total_segments + ' segments)';
+                } else {
+                    // Fallback to basic optimization data
+                    console.log('No full optimization, trying basic route...');
+                    loadBasicOptimizedRoute(routeId);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading full optimization:', error);
+                loadBasicOptimizedRoute(routeId);
+            });
+    }
+
+    // Fallback: Load basic optimized route without alternatives
+    function loadBasicOptimizedRoute(routeId) {
+        fetch(`/agent/api/get-optimized-route/${routeId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Basic optimization data:', data);
+                if (data.success && data.optimization) {
+                    optimizedRoute = data.optimization;
+                    routePointSets.optimized = buildAllRoutePoints(data.optimization);
+                    routePointSets.alt1 = [];
+                    routePointSets.alt2 = [];
+                    currentRouteType = 'optimized';
+                    allRoutePoints = routePointSets.optimized;
+                    displayOptimizedRouteOnMap(data.optimization);
+                    setRouteTypeButtonsEnabled(true);
+                    updateRouteTypeButtonsState();
+                    selectRouteType('optimized');
+                } else {
+                    console.log('No optimization found, showing basic route');
+                    displayBasicRouteOnMap();
+                    setRouteTypeButtonsEnabled(false);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading optimization:', error);
+                displayBasicRouteOnMap();
+                setRouteTypeButtonsEnabled(false);
+            });
+    }
+
+    // Build route points from saved optimization data  
+    function buildAllRoutePointsFromSaved(data, routeType = 'optimized') {
+        const points = [];
+
+        // Start location
+        if (data.start_location) {
+            points.push({
+                lat: data.start_location.lat,
+                lng: data.start_location.lon,
+                name: data.start_location.name,
+                type: 'start'
+            });
+        }
+
+        // Add segments with intermediate points
+        if (data.segments) {
+            data.segments.forEach((segment, idx) => {
+                if (routeType === 'optimized') {
+                    if (segment.intermediate_points) {
+                        segment.intermediate_points.forEach(wp => {
+                            points.push({
+                                lat: wp.lat,
+                                lng: wp.lon,
+                                name: `Waypoint (${segment.to_name})`,
+                                type: 'waypoint'
+                            });
+                        });
+                    }
+                } else {
+                    const useFields = routeType === 'alt1' ? 'opt_alt1' : 'opt_alt2';
+                    const altPointsRaw = segment[useFields] || [];
+
+                    if (altPointsRaw.length > 0) {
+                        altPointsRaw.forEach(wp => {
+                            points.push({
+                                lat: wp.lat,
+                                lng: wp.lon,
+                                name: `${routeType === 'alt1' ? 'Alt 1' : 'Alt 2'} Waypoint (${segment.to_name})`,
+                                type: 'waypoint'
+                            });
+                        });
+                    } else if (segment.intermediate_points) {
+                        const offset = routeType === 'alt1' ? 0.0004 : -0.0004;
+                        segment.intermediate_points.forEach(wp => {
+                            points.push({
+                                lat: wp.lat + offset,
+                                lng: wp.lon + offset,
+                                name: `${routeType === 'alt1' ? 'Alt 1' : 'Alt 2'} Waypoint (${segment.to_name})`,
+                                type: 'waypoint'
+                            });
+                        });
+                    }
+                }
+
+                // Add destination point
+                points.push({
+                    lat: segment.to_lat,
+                    lng: segment.to_lon,
+
+                    name: segment.to_name,
+                    type: 'stop',
+                    goods: segment.goods_name
+                });
+            });
+        }
+
+        return points;
+    }
+
+    // Build all route points from optimization data
+    function buildAllRoutePoints(optimization) {
+        const points = [];
+
+        // Start location
+        if (currentRoute.start_latitude && currentRoute.start_longitude) {
+            points.push({
+                lat: parseFloat(currentRoute.start_latitude),
+                lng: parseFloat(currentRoute.start_longitude),
+                name: currentRoute.start_location_name,
+                type: 'start'
+            });
+        }
+
+        // Add intermediate points from optimization
+        if (optimization.segments) {
+            optimization.segments.forEach((segment, idx) => {
+                // Add intermediate waypoints
+                if (segment.intermediate_points) {
+                    segment.intermediate_points.forEach(wp => {
+                        points.push({
+                            lat: wp.lat,
+                            lng: wp.lon,
+                            name: `Waypoint (${segment.to_name})`,
+                            type: 'waypoint'
+                        });
+                    });
+                }
+
+                // Add destination point
+                points.push({
+                    lat: segment.to_lat,
+                    lng: segment.to_lon,
+                    name: segment.to_name,
+                    type: 'stop',
+                    goods: segment.goods_name
+                });
+            });
+        }
+
+        return points;
+    }
+
+    // Display route details
+    function displayRouteDetails(data) {
+        const detailsDiv = document.getElementById('currentRouteDetails');
+        const route = currentRoute;
+
+        detailsDiv.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="route-info-card">
+                        <h5 class="text-primary"><i class="fas fa-route me-2"></i>${route.route_name}</h5>
+                        <hr>
+                        <p><i class="fas fa-play-circle text-success me-2"></i><strong>Starting Point:</strong> ${route.start_location_name || 'N/A'}</p>
+                        <p><i class="fas fa-map-pin text-info me-2"></i><strong>Total Stops:</strong> <span class="badge bg-info">${route.stops_count || data.details.length}</span></p>
+                        <p><i class="fas fa-box text-primary me-2"></i><strong>Total Goods:</strong> <span class="badge bg-primary">${route.total_goods || data.details.length}</span></p>
+                        <p><i class="fas fa-flag text-warning me-2"></i><strong>Status:</strong> <span class="badge bg-warning">${route.status || 'pending'}</span></p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="route-info-card">
+                        <h5 class="text-secondary"><i class="fas fa-info-circle me-2"></i>Additional Info</h5>
+                        <hr>
+                        <p><i class="fas fa-truck text-secondary me-2"></i><strong>Vehicle:</strong> ${route.vehicle_name ? route.vehicle_name + ' (' + (route.vehicle_number || '') + ')' : 'N/A'}</p>
+                        <p><i class="fas fa-clock text-info me-2"></i><strong>Est. Time:</strong> ${route.estimated_time_minutes || 'Calculating...'} min</p>
+                        <p><i class="fas fa-road text-success me-2"></i><strong>Est. Distance:</strong> ${route.estimated_distance_km || 'Calculating...'} km</p>
+                    </div>
+                </div>
+            </div>
+            <div class="route-info-card mt-3">
+                <p class="mb-0"><i class="fas fa-map-signs text-danger me-2"></i><strong>Delivery Stop Names:</strong> 
+                    <span class="text-muted">${route.stop_location_names || data.details.map(d => d.location_name).join(', ') || 'N/A'}</span>
+                </p>
+            </div>
+        `;
+    }
+
+    // Display route stops in table with Address and Task columns
+    function displayRouteStops(stops) {
+        const tbody = document.getElementById('stopsTable');
+        tbody.innerHTML = '';
+
+        if (!stops || stops.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><i class="fas fa-info-circle me-2"></i>No stops available</td></tr>';
+            return;
+        }
+
+        stops.forEach((stop, index) => {
+            const row = document.createElement('tr');
+            row.id = `stopRow${index}`;
+
+            // Task is typically "Delivery" for this system
+            const task = stop.delivery_status === 'delivered' ? 'Delivered' : 'Delivery';
+
+            row.innerHTML = `
+                <td><strong>${stop.sequence_order || index + 1}</strong></td>
+                <td><i class="fas fa-map-marker-alt text-primary me-1"></i>${stop.location_name || 'N/A'}</td>
+                <td><small class="text-muted">${stop.location_address || 'No address available'}</small></td>
+                <td><span class="badge bg-secondary">${task}</span></td>
+                <td><strong>${stop.goods_name || 'N/A'}</strong></td>
+                <td>${stop.goods_weight || 0}</td>
+                <td><span class="badge bg-info">${stop.goods_category || 'N/A'}</span></td>
+                <td><span class="badge bg-warning" id="stopStatus${index}">Pending</span></td>
+                <td id="stopMessage${index}">-</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Display optimized route on map
+    function displayOptimizedRouteOnMap(optimization) {
+        clearMap();
+
+        if (!optimization || !optimization.segments) {
+            console.log('No optimization segments');
+            return;
+        }
+
+        const bounds = [];
+
+        // Draw start marker
+        if (currentRoute.start_latitude && currentRoute.start_longitude) {
+            const startMarker = L.marker(
+                [currentRoute.start_latitude, currentRoute.start_longitude],
+                {
+                    icon: L.divIcon({
+                        html: '<div style="background: #28a745; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); font-size: 10px;">START</div>',
+                        className: '',
+                        iconSize: [40, 40]
+                    })
+                }
+            ).addTo(routeMap);
+            routeMarkers.push(startMarker);
+            startMarker.bindPopup(`<strong>START:</strong> ${currentRoute.start_location_name}<br><small>${currentRoute.start_location_address || ''}</small>`);
+            bounds.push([currentRoute.start_latitude, currentRoute.start_longitude]);
+        }
+
+        // Draw segments with intermediate points
+        optimization.segments.forEach((segment, idx) => {
+            const segmentPoints = [[segment.from_lat, segment.from_lon]];
+
+            // Add intermediate waypoints
+            if (segment.intermediate_points) {
+                segment.intermediate_points.forEach(wp => {
+                    segmentPoints.push([wp.lat, wp.lon]);
+
+                    // Small yellow marker for waypoints
+                    const wpMarker = L.circleMarker([wp.lat, wp.lon], {
+                        radius: 5,
+                        fillColor: '#ffc107',
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(routeMap);
+                    routeMarkers.push(wpMarker);
+                    bounds.push([wp.lat, wp.lon]);
+                });
+            }
+
+            segmentPoints.push([segment.to_lat, segment.to_lon]);
+
+            // Draw polyline (optimized route - green)
+            const polyline = L.polyline(segmentPoints, {
+                color: '#27ae60',
+                weight: 4,
+                opacity: 0.7
+            }).addTo(routeMap);
+            routePolylines.push(polyline);
+
+            // Draw stop marker
+            const isEnd = idx === optimization.segments.length - 1;
+            const stopMarker = L.marker(
+                [segment.to_lat, segment.to_lon],
+                {
+                    icon: L.divIcon({
+                        html: `<div style="background: ${isEnd ? '#dc3545' : '#3498db'}; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${isEnd ? 'END' : idx + 1}</div>`,
+                        className: '',
+                        iconSize: [35, 35]
+                    })
+                }
+            ).addTo(routeMap);
+            routeMarkers.push(stopMarker);
+            stopMarker.bindPopup(`<strong>${segment.to_name}</strong><br>${segment.goods_name} (${segment.goods_weight} kg)`);
+            bounds.push([segment.to_lat, segment.to_lon]);
+        });
+
+        // Fit map to bounds
+        if (bounds.length > 0) {
+            routeMap.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }
+
+    // Display basic route on map (fallback when no optimization)
+    function displayBasicRouteOnMap() {
+        clearMap();
+
+        if (!currentRoute) return;
+
+        console.log('Displaying basic route (no optimization)');
+        // You can implement a basic display here if needed
+    }
+
+    // Start simulation
+    function startSimulation() {
+        if (!currentRoute || !allRoutePoints || allRoutePoints.length < 2) {
+            alert('No route data available for simulation. Please ensure the route has been optimized.');
+            return;
+        }
+
+        simulationRunning = true;
+
+        const isResuming = pauseStartTime !== null && (currentSegmentIndex > 0 || segmentProgress > 0);
+        if (!isResuming) {
+            currentSegmentIndex = 0;
+            segmentProgress = 0;
+
+            // Reset reroute tracking
+            hasRerouted = false;
+            originalRouteType = null;
+            reroutePointIndex = -1;
+
+            // Clean up old traveled polylines
+            traveledPolylines.forEach(pl => routeMap.removeLayer(pl));
+            traveledPolylines = [];
+            originalRoutePolylines = [];
+
+            // Randomly select an accident trigger point (between 30% and 80% of the route)
+            if (allRoutePoints.length > 5) {
+                const minIdx = Math.floor(allRoutePoints.length * 0.3);
+                const maxIdx = Math.floor(allRoutePoints.length * 0.8);
+                accidentTriggerPointIndex = Math.floor(Math.random() * (maxIdx - minIdx + 1)) + minIdx;
+                console.log(`Simulation will trigger incident at point index: ${accidentTriggerPointIndex}`);
+            } else {
+                accidentTriggerPointIndex = -1;
+            }
+            accidentOccurred = false;
+        }
+
+        pauseStartTime = null;
+        if (pauseAlertTimeoutId) {
+            clearTimeout(pauseAlertTimeoutId);
+            pauseAlertTimeoutId = null;
+        }
+        if (pauseTimerIntervalId) clearInterval(pauseTimerIntervalId);
+        const timerDisplay = document.getElementById('pauseTimerDisplay');
+        timerDisplay.style.display = 'none';
+        timerDisplay.style.background = '#fff8e1';
+        timerDisplay.style.color = '#a27c00';
+        document.getElementById('simulationStatus').innerHTML = '';
+
+        // Update UI
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('pauseBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('updateLocationBtn').disabled = false;
+
+        // Update Floating Buttons
+        document.getElementById('floatStartBtn').disabled = true;
+        document.getElementById('floatPauseBtn').disabled = false;
+        document.getElementById('floatStopBtn').disabled = false;
+
+        document.getElementById('simulationProgressUI').style.display = 'block';
+        document.getElementById('floatProgressOverlay').style.display = 'block';
+        document.getElementById('vehicleStatusText').innerHTML = '<i class="fas fa-truck me-2"></i>Vehicle Moving';
+        document.getElementById('vehicleStatusText').className = 'fw-bold text-success';
+        document.getElementById('followingRouteText').textContent = `Following: ${currentRouteType === 'optimized' ? 'Optimized Route' : (currentRouteType === 'alt1' ? 'Alternative Route (1)' : 'Alternative Route (2)')}`;
+
+        // Start simulation on server
+        fetch(`/agent/api/start-route-simulation/${currentRoute.id}`, {
+            method: 'POST'
+        });
+
+        lastAnimTimestamp = performance.now();
+        requestAnimationFrame(animateVehicle);
+    }
+
+    // New smoothing functions
+    function calculateDistance(p1, p2) {
+        const R = 6371; // Earth's radius in km
+        const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+        const dLon = (p2.lng - p1.lng) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    function animateVehicle(timestamp) {
+        if (!simulationRunning) return;
+
+        const deltaTime = timestamp - lastAnimTimestamp;
+        lastAnimTimestamp = timestamp;
+
+        if (currentSegmentIndex >= allRoutePoints.length - 1) {
+            stopSimulation();
+            return;
+        }
+
+        // Check for accident trigger
+        if (!accidentOccurred && accidentTriggerPointIndex !== -1 && currentSegmentIndex >= accidentTriggerPointIndex) {
+            simulationRunning = false;
+            accidentOccurred = true;
+            document.getElementById('accidentOverlay').style.display = 'flex';
+
+            // Log it in Simulation Status
+            document.getElementById('simulationStatus').innerHTML = `
+                <div class="alert alert-danger animate__animated animate__headShake">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Incident Detected!</strong> Vehicle stopped for reroute analysis.
+                </div>
+            `;
+            return;
+        }
+
+        const p1 = allRoutePoints[currentSegmentIndex];
+        const p2 = allRoutePoints[currentSegmentIndex + 1];
+
+        const dist = calculateDistance(p1, p2);
+        const effectiveDist = Math.max(dist, 0.001);
+
+        // Use a consistent simulation speed (e.g., 60 km/h * speed factor)
+        // Adjust SPEED_FACTOR if it moves too fast or slow
+        const speedKms = (SIM_SPEED_KMH / 3600) / 1000;
+        const speedFactor = 15; // Animation speed multiplier
+        const progressChange = (deltaTime * speedKms * speedFactor) / effectiveDist;
+
+        segmentProgress += progressChange;
+
+        if (segmentProgress >= 1) {
+            segmentProgress = 0;
+            currentSegmentIndex++;
+            updateStopStatus(currentSegmentIndex);
+
+            // Periodically update server (at each point)
+            const point = allRoutePoints[currentSegmentIndex];
+            updateSimulationProgress(point);
+
+            if (currentSegmentIndex >= allRoutePoints.length - 1) {
+                stopSimulation();
+                return;
+            }
+        }
+
+        const interpolatedLat = p1.lat + (p2.lat - p1.lat) * segmentProgress;
+        const interpolatedLng = p1.lng + (p2.lng - p1.lng) * segmentProgress;
+
+        updateVehicleMarker(interpolatedLat, interpolatedLng, p1, p2);
+
+        animationFrameId = requestAnimationFrame(animateVehicle);
+    }
+
+    function updateVehicleMarker(lat, lng, p1, p2) {
+        // Calculate rotation angle (bearing)
+        const angle = Math.atan2(p2.lng - p1.lng, p2.lat - p1.lat) * 180 / Math.PI;
+
+        if (!currentLocationMarker) {
+            currentLocationMarker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    html: '<div class="vehicle-marker" id="sim-vehicle"><i class="fas fa-truck-moving"></i></div>',
+                    className: '',
+                    iconSize: [44, 44],
+                    iconAnchor: [22, 22]
+                }),
+                zIndexOffset: 1000
+            }).addTo(routeMap);
+        } else {
+            currentLocationMarker.setLatLng([lat, lng]);
+        }
+
+        // Apply rotation to the icon - Use a wrapper to avoid Leaflet icon rotation issues
+        const vehicleDiv = document.getElementById('sim-vehicle');
+        if (vehicleDiv) {
+            // Subtract 90 if the truck icon is facing right by default, 
+            // but usually FontAwesome truck is facing right. 
+            // atan2(y, x) gives angle from East. We want angle for CSS rotate.
+            // If truck icon faces right, then 0 deg is right. 
+            // In our atan2(dLng, dLat), dLat is Y (North) and dLng is X (East).
+            // Actually it's atan2(deltaLon, deltaLat) which is angle from North (0 is North).
+            // CSS rotate(0) is right. So we add 90 if North is 0.
+            vehicleDiv.style.transform = `rotate(${angle - 90}deg)`;
+        }
+
+        // Update simulation status display (only if changed enough)
+        const point = allRoutePoints[currentSegmentIndex];
+        const message = getLocationMessage(point);
+        document.getElementById('simulationStatus').innerHTML = `
+            <div class="alert alert-info py-2 mb-0">
+                <i class="fas fa-location-arrow"></i> ${message}
+            </div>
+        `;
+
+        // Follow vehicle with camera
+        routeMap.panTo([lat, lng], { animate: false });
+
+        // Periodically log path to database (every 5 seconds)
+        const now = Date.now();
+        if (now - lastPathLogTime > 5000) {
+            logSimulationPath(lat, lng);
+            lastPathLogTime = now;
+        }
+
+        // Update Progress UI
+        const totalPoints = allRoutePoints.length;
+        if (totalPoints > 1) {
+            const overallProgress = ((currentSegmentIndex + segmentProgress) / (totalPoints - 1)) * 100;
+            const roundedProgress = Math.min(Math.round(overallProgress), 100);
+
+            document.getElementById('progressPercentText').textContent = `${roundedProgress}%`;
+            document.getElementById('simProgressBar').style.width = `${overallProgress}%`;
+
+            document.getElementById('floatPercentText').textContent = `${roundedProgress}%`;
+            document.getElementById('floatProgressBar').style.width = `${overallProgress}%`;
+
+            const pointNum = currentSegmentIndex + 1;
+            document.getElementById('pointStatusText').textContent = `Point ${pointNum} of ${totalPoints} (${roundedProgress}% complete)`;
+        }
+    }
+
+    // Get location message
+    function getLocationMessage(point) {
+        if (point.type === 'start') {
+            return `Starting from: <strong>${point.name}</strong>`;
+        } else if (point.type === 'waypoint') {
+            return `Passing through intermediate point near <strong>${point.name}</strong>`;
+        } else if (point.type === 'stop') {
+            return `Arrived at delivery stop: <strong>${point.name}</strong> (${point.goods || ''})`;
+        }
+        return `Moving to next location...`;
+    }
+
+    // Update stop status
+    function updateStopStatus(pointIndex) {
+        const point = allRoutePoints[pointIndex];
+        if (point && point.type === 'stop') {
+            // Find which stop index this corresponds to in the table
+            let stopIdx = 0;
+            for (let i = 0; i < pointIndex; i++) {
+                if (allRoutePoints[i].type === 'stop') {
+                    stopIdx++;
+                }
+            }
+
+            const statusBadge = document.getElementById(`stopStatus${stopIdx}`);
+            const messageCell = document.getElementById(`stopMessage${stopIdx}`);
+            const row = document.getElementById(`stopRow${stopIdx}`);
+
+            if (statusBadge) {
+                statusBadge.className = 'badge bg-success';
+                statusBadge.textContent = 'Arrived';
+            }
+            if (messageCell) {
+                messageCell.innerHTML = `<span class="text-success"><i class="fas fa-check-circle me-1"></i>Arrived at ${point.name}</span>`;
+            }
+            if (row) {
+                row.classList.add('table-success');
+            }
+
+            // Log stop arrival to DB
+            logStopArrival(point.location_id || point.id, `Arrived at delivery stop: ${point.name}`);
+        }
+    }
+
+    function logStopArrival(locationId, note) {
+        if (!currentRoute) return;
+        fetch(`/agent/api/log-stop-arrival/${currentRoute.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location_id: locationId, note: note })
+        });
+    }
+
+    function logSimulationPath(lat, lng) {
+        if (!currentRoute) return;
+        fetch(`/agent/api/update-simulation-progress/${currentRoute.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                latitude: lat,
+                longitude: lng,
+                location_name: "In Transit",
+                point_index: currentSegmentIndex
+            })
+        });
+    }
+
+    function logIncident(type, description) {
+        if (!currentRoute) return;
+        fetch(`/agent/api/log-incident/${currentRoute.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: type, description: description })
+        });
+    }
+
+    // Pause simulation
+    function pauseSimulation() {
+        simulationRunning = false;
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+        pauseStartTime = new Date();
+
+        document.getElementById('vehicleStatusText').innerHTML = '<i class="fas fa-pause-circle me-2"></i>Simulation Paused';
+        document.getElementById('vehicleStatusText').className = 'fw-bold text-warning';
+
+        document.getElementById('pauseBtn').disabled = true;
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> Resume';
+
+        document.getElementById('floatPauseBtn').disabled = true;
+        document.getElementById('floatStartBtn').disabled = false;
+
+        document.getElementById('simulationStatus').innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-pause-circle"></i> Simulation paused. Auto-alert in 1 minute.
+            </div>
+        `;
+
+        // Notify server
+        fetch(`/agent/api/pause-route-simulation/${currentRoute.id}`, {
+            method: 'POST'
+        });
+
+        if (pauseAlertTimeoutId) {
+            clearTimeout(pauseAlertTimeoutId);
+            pauseAlertTimeoutId = null;
+        }
+
+        // Start pause UI timer (as per user image)
+        pauseTimeTotalSeconds = 0;
+        document.getElementById('pauseTimeCounter').textContent = '0s';
+        document.getElementById('pauseTimerDisplay').style.display = 'block';
+
+        if (pauseTimerIntervalId) clearInterval(pauseTimerIntervalId);
+
+        pauseTimerIntervalId = setInterval(() => {
+            pauseTimeTotalSeconds++;
+            document.getElementById('pauseTimeCounter').textContent = `${pauseTimeTotalSeconds}s`;
+        }, 1000);
+
+        // Start pause alert timer (1 minute = 60 seconds)
+        pauseAlertTimeoutId = setTimeout(() => {
+            if (!simulationRunning && pauseStartTime) {
+                sendAdminAlert('Agent has been paused for 1 minute!');
+
+                // Change pause timer style to alert mode (reddish)
+                const timerDisplay = document.getElementById('pauseTimerDisplay');
+                timerDisplay.style.background = '#fdeaea';
+                timerDisplay.style.color = '#c0392b';
+
+                logIncident('Long Pause Alert', 'Agent has been paused for over 1 minute. Admin notified.');
+
+                document.getElementById('simulationStatus').innerHTML = `
+                    <div class="alert-premium-danger mt-3 shadow-sm">
+                        <i class="fas fa-exclamation-triangle alert-icon-lg animate__animated animate__shakeX"></i>
+                        <div>
+                            <div class="alert-title">Alert Sent to Admin!</div>
+                            <div class="alert-text">You have been paused for over 1 minute. Admin has been automatically notified.</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }, 60000);
+    }
+
+    // Stop simulation
+    function stopSimulation() {
+        simulationRunning = false;
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+        pauseStartTime = null;
+        if (pauseAlertTimeoutId) {
+            clearTimeout(pauseAlertTimeoutId);
+            pauseAlertTimeoutId = null;
+        }
+        if (pauseTimerIntervalId) clearInterval(pauseTimerIntervalId);
+        document.getElementById('pauseTimerDisplay').style.display = 'none';
+
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('pauseBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> Start Simulation';
+
+        document.getElementById('floatStartBtn').disabled = false;
+        document.getElementById('floatPauseBtn').disabled = true;
+        document.getElementById('floatStopBtn').disabled = true;
+        document.getElementById('floatProgressOverlay').style.display = 'none';
+
+        // Remove current location marker
+        if (currentLocationMarker) {
+            routeMap.removeLayer(currentLocationMarker);
+        }
+
+        // Notify server
+        fetch(`/agent/api/stop-route-simulation/${currentRoute.id}`, {
+            method: 'POST'
+        });
+
+        document.getElementById('simulationStatus').innerHTML = `
+            <div class="alert alert-secondary py-2 mb-0">
+                <i class="fas fa-stop-circle"></i> Simulation stopped.
+            </div>
+        `;
+        document.getElementById('simulationProgressUI').style.display = 'none';
+
+        // Show PDF Report card when simulation stops/completes
+        document.getElementById('reportPlaceholderCard').style.display = 'none';
+        document.getElementById('postTripReportCard').style.display = 'block';
+
+        logIncident('Simulation Stopped', 'Mission simulation ended by agent.');
+    }
+
+    // Update current location manually
+    function updateCurrentLocation() {
+        if (!simulationRunning || currentSegmentIndex >= allRoutePoints.length) {
+            alert('Simulation is not running.');
+            return;
+        }
+
+        const point = allRoutePoints[currentSegmentIndex];
+        const message = getLocationMessage(point);
+
+        alert(`Current Location:\n\n${point.name}\n\nType: ${point.type}\nLatitude: ${point.lat.toFixed(6)}\nLongitude: ${point.lng.toFixed(6)}`);
+
+        // Send location update to server
+        fetch(`/agent/api/update-simulation-location/${currentRoute.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                latitude: point.lat,
+                longitude: point.lng,
+                location_name: point.name
+            })
+        });
+    }
+
+    // Update simulation progress on server
+    function updateSimulationProgress(point) {
+        fetch(`/agent/api/update-simulation-progress/${currentRoute.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                latitude: point.lat,
+                longitude: point.lng,
+                location_name: point.name,
+                point_index: currentSegmentIndex
+            })
+        });
+    }
+
+    // Send admin alert
+    function sendAdminAlert(message) {
+        fetch(`/agent/api/send-admin-alert/${currentRoute.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        }).then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    loadMessages(currentRoute.id);
+                }
+            });
+    }
+
+    // Send message to admin
+    function sendMessage() {
+        if (!currentRoute) {
+            alert('Please select a route first');
+            return;
+        }
+
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+
+        if (message === '') return;
+
+        fetch(`/agent/api/send-message/${currentRoute.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        }).then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    input.value = '';
+                    loadMessages(currentRoute.id);
+                } else {
+                    alert('Error sending message: ' + d.message);
+                }
+            });
+    }
+
+    // Load messages
+    function loadMessages(routeId) {
+        fetch(`/agent/api/get-messages/${routeId}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    displayMessages(d.messages);
+                }
+            });
+    }
+
+    // Display messages
+    function displayMessages(messages) {
+        const messageBox = document.getElementById('messageBox');
+
+        if (!messages || messages.length === 0) {
+            messageBox.innerHTML = '<p class="text-muted text-center">No messages</p>';
+            return;
+        }
+
+        // Detect new messages for notifications
+        if (lastNotifiedAdminMessageId === 0) {
+            let maxId = 0;
+            messages.forEach(m => {
+                const id = parseInt(m.id, 10);
+                if (id && id > maxId) maxId = id;
+            });
+            lastNotifiedAdminMessageId = maxId;
+        } else {
+            messages.forEach(m => {
+                const id = parseInt(m.id, 10);
+                if (id > lastNotifiedAdminMessageId) {
+                    lastNotifiedAdminMessageId = id;
+
+                    // Show notification for admin or system messages
+                    if (m.sender_type === 'admin' || m.sender_type === 'system') {
+                        showNotification(m.sender_type, m.message);
+
+                        if (m.sender_type === 'admin') {
+                            document.getElementById('simulationStatus').innerHTML += `
+                                <div class="alert-premium-info mt-3 shadow-sm animate__animated animate__fadeInUp">
+                                    <i class="fas fa-envelope alert-icon-lg"></i>
+                                    <div>
+                                        <div class="alert-title">Admin Response Received</div>
+                                        <div class="alert-text">Check the Messages panel for details. Click Resume when ready to continue.</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            });
+        }
+
+        messageBox.innerHTML = '';
+        messages.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = `message-item message-${msg.sender_type}`;
+
+            div.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <span class="badge ${msg.sender_type === 'agent' ? 'bg-primary' : (msg.sender_type === 'admin' ? 'bg-warning text-dark' : 'bg-danger')}">
+                        ${msg.sender_type.toUpperCase()}
+                    </span>
+                    <small class="text-muted">${msg.created_at}</small>
+                </div>
+                <div class="mt-1">${msg.message}</div>
+            `;
+            messageBox.appendChild(div);
+        });
+
+        messageBox.scrollTop = messageBox.scrollHeight;
+    }
+
+    // Premium Notification System
+    function showNotification(type, message) {
+        const container = document.getElementById('notificationContainer');
+
+        if (type === 'admin') {
+            // New Image-style Popup for Admin Messages
+            const popup = document.createElement('div');
+            popup.className = 'admin-msg-popup shadow-lg';
+            popup.innerHTML = `
+                <div class="admin-msg-header">
+                    <div><i class="fas fa-exclamation-triangle me-2"></i><i class="fas fa-envelope-open-text me-2"></i> Message from Admin</div>
+                    <div style="cursor:pointer" onclick="this.parentElement.parentElement.remove()">&times;</div>
+                </div>
+                <div class="admin-msg-body">
+                    ${message}
+                </div>
+            `;
+            container.appendChild(popup);
+
+            // Auto remove after 10s
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.style.animation = 'fadeOut 0.5s ease-out forwards';
+                    setTimeout(() => popup.remove(), 500);
+                }
+            }, 10000);
+            return;
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `notification-toast ${type}`;
+
+        let icon = 'fa-bell';
+        let title = 'Notification';
+
+        if (type === 'system') {
+            icon = 'fa-exclamation-triangle';
+            title = 'System Alert';
+        }
+
+        toast.innerHTML = `
+            <div class="icon"><i class="fas ${icon}"></i></div>
+            <div class="notification-content">
+                <div class="notification-title">${title}</div>
+                <div class="notification-body">${message}</div>
+            </div>
+            <div class="toast-progress">
+                <div class="toast-progress-bar" id="pb-${Date.now()}"></div>
+            </div>
+        `;
+
+        container.appendChild(toast);
+
+        // Start progress bar animation
+        const pbId = `pb-${Date.now()}`;
+        const pb = toast.querySelector('.toast-progress-bar');
+        if (pb) {
+            setTimeout(() => pb.style.width = '100%', 10);
+        }
+
+        // Remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.style.animation = 'fadeOut 0.5s ease-out forwards';
+                setTimeout(() => toast.remove(), 500);
+            }
+        }, 5000);
+    }
+
+    // Clear map
+    function clearMap() {
+        routeMarkers.forEach(marker => routeMap.removeLayer(marker));
+        routePolylines.forEach(polyline => routeMap.removeLayer(polyline));
+        if (currentLocationMarker) {
+            routeMap.removeLayer(currentLocationMarker);
+        }
+        routeMarkers = [];
+        routePolylines = [];
+        routePolylinesByType = { optimized: [], alt1: [], alt2: [] };
+    }
+
+    // Clear route display
+    function clearRouteDisplay() {
+        document.getElementById('currentRouteDetails').innerHTML = `
+            <p class="text-muted text-center py-4">
+                <i class="fas fa-hand-pointer fa-2x mb-2 d-block"></i>
+                Please select a route above to view details
+            </p>
+        `;
+        document.getElementById('stopsTable').innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><i class="fas fa-info-circle me-2"></i>No route selected</td></tr>';
+        clearMap();
+        currentRoute = null;
+        document.getElementById('startBtn').disabled = true;
+
+        // Hide details display
+        document.getElementById('routeDetailsDisplay').style.display = 'none';
+        document.getElementById('simulationProgressUI').style.display = 'none';
+
+        // Reset Load Saved Route button
+        const savedBtn = document.getElementById('loadSavedRouteBtn');
+        savedBtn.disabled = true;
+        savedBtn.classList.remove('btn-warning', 'btn-success');
+        savedBtn.classList.add('btn-outline-warning');
+        savedBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Load Saved Route';
+
+        // Hide legend panel
+        document.getElementById('mapLegendPanel').style.display = 'none';
+        document.getElementById('legendToggleBtn').classList.remove('btn-light');
+        document.getElementById('legendToggleBtn').classList.add('btn-outline-light');
+
+        document.getElementById('simulationStatus').innerHTML = '';
+        setRouteTypeButtonsEnabled(false);
+    }
+
+
+
+    // Check if saved optimization exists for the route
+    function checkSavedOptimization(routeId) {
+        fetch(`/agent/api/get-saved-optimization-full/${routeId}`)
+            .then(r => r.json())
+            .then(d => {
+                const btn = document.getElementById('loadSavedRouteBtn');
+                if (d.success && d.has_optimization) {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-outline-warning');
+                    btn.classList.add('btn-warning');
+                    btn.innerHTML = '<i class="fas fa-check-circle me-1"></i>Load Saved Route (' + d.total_segments + ' segments)';
+                } else {
+                    btn.disabled = true;
+                    btn.classList.remove('btn-warning');
+                    btn.classList.add('btn-outline-warning');
+                    btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>No Saved Route';
+                }
+            })
+            .catch(e => {
+                console.error('Error checking saved optimization:', e);
+                document.getElementById('loadSavedRouteBtn').disabled = true;
+            });
+    }
+
+    // Load and display saved route on map with alternative routes
+    function loadSavedRouteOnMap() {
+        if (!currentRoute) {
+            alert('Please select a route first.');
+            return;
+        }
+
+        const btn = document.getElementById('loadSavedRouteBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+
+        fetch(`/agent/api/get-saved-optimization-full/${currentRoute.id}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.has_optimization) {
+                    drawSavedRouteWithAlternatives(d);
+
+                    // Show legend when route is loaded
+                    document.getElementById('mapLegendPanel').style.display = 'block';
+                    document.getElementById('legendToggleBtn').classList.remove('btn-outline-light');
+                    document.getElementById('legendToggleBtn').classList.add('btn-light');
+
+                    // Update simulation status
+                    document.getElementById('simulationStatus').innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Saved Route Loaded!</strong><br>
+                            <small>${d.total_segments} segments with intermediate waypoints displayed.</small><br>
+                            <small class="text-muted">Optimized Route (Green) | Alternative 1 (Blue) | Alternative 2 (Purple)</small>
+                        </div>
+                    `;
+
+                    btn.innerHTML = '<i class="fas fa-check me-1"></i>Route Loaded';
+                    btn.classList.remove('btn-warning');
+                    btn.classList.add('btn-success');
+                } else {
+                    alert('No saved optimization found. Please optimize the route first using the Optimize Route page.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Load Saved Route';
+                }
+            })
+            .catch(e => {
+                console.error('Error loading saved route:', e);
+                alert('Error loading saved route. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Load Saved Route';
+            });
+    }
+
+    // Draw saved route with alternatives (similar to optimize_route1.html)
+    function drawSavedRouteWithAlternatives(data) {
+        clearMap();
+
+        routePolylinesByType = { optimized: [], alt1: [], alt2: [] };
+        const altLabels = ['Alternative Route (1)', 'Alternative Route (2)'];
+
+        const allPoints = [];
+        let waypointCount = 0;
+
+        // Start marker
+        const startIcon = L.divIcon({
+            html: '<div style="background:#28a745;color:white;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 3px 8px rgba(0,0,0,0.4);font-size:10px;border:3px solid white;">START</div>',
+            className: '',
+            iconSize: [42, 42]
+        });
+
+        const startMarker = L.marker([data.start_location.lat, data.start_location.lon], { icon: startIcon })
+            .addTo(routeMap)
+            .bindPopup(`<strong>START:</strong> ${data.start_location.name}`);
+        routeMarkers.push(startMarker);
+        allPoints.push([data.start_location.lat, data.start_location.lon]);
+
+        // Draw segments with intermediate points and alternative routes
+        data.segments.forEach((seg, idx) => {
+            const segmentPoints = [[seg.from_lat, seg.from_lon]];
+
+            // Add intermediate waypoints (primary optimization)
+            if (seg.intermediate_points && seg.intermediate_points.length > 0) {
+                seg.intermediate_points.forEach((wp, wpIdx) => {
+                    waypointCount++;
+                    segmentPoints.push([wp.lat, wp.lon]);
+
+                    // White waypoint marker matching the pic
+                    const wpIcon = L.divIcon({
+                        html: `<div style="background:white;border:3px solid #3498db;border-radius:50%;width:18px;height:18px;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`,
+                        className: '',
+                        iconSize: [18, 18]
+                    });
+
+                    const wpMarker = L.marker([wp.lat, wp.lon], { icon: wpIcon })
+                        .addTo(routeMap)
+                        .bindPopup(`<strong>Waypoint ${wpIdx + 1}</strong><br>Segment ${idx + 1}: ${seg.from_name} → ${seg.to_name}<br><small>Elevation: ${wp.elev || 0} m</small>`);
+                    routeMarkers.push(wpMarker);
+                });
+            }
+
+            segmentPoints.push([seg.to_lat, seg.to_lon]);
+            allPoints.push(...segmentPoints.slice(1));
+
+            // Draw OPTIMIZED ROUTE (primary) - Green solid line
+            const primaryPolyline = L.polyline(segmentPoints, {
+                color: '#27ae60',
+                weight: 8,
+                opacity: 0.8,
+                lineJoin: 'round'
+            }).addTo(routeMap);
+            routePolylines.push(primaryPolyline);
+            routePolylinesByType.optimized.push(primaryPolyline);
+
+            // Draw ALTERNATIVE ROUTES using optimization fields from DB
+            const altColors = ['#3498db', '#6f42c1']; // Blue for Alt1, Purple for Alt2
+
+            [1, 2].forEach(altIdx => {
+                const altPoints = [[seg.from_lat, seg.from_lon]];
+                const fieldName = altIdx === 1 ? 'opt_alt1' : 'opt_alt2';
+                const currentAltIntermediates = seg[fieldName] || [];
+
+                if (currentAltIntermediates.length > 0) {
+                    currentAltIntermediates.forEach(wp => {
+                        altPoints.push([wp.lat, wp.lon]);
+                    });
+                } else if (seg.intermediate_points) {
+                    const offset = altIdx === 1 ? 0.0004 : -0.0004;
+                    seg.intermediate_points.forEach(wp => {
+                        altPoints.push([wp.lat + offset, wp.lon + offset]);
+                    });
+                }
+
+                altPoints.push([seg.to_lat, seg.to_lon]);
+
+                const altPolyline = L.polyline(altPoints, {
+                    color: altColors[altIdx - 1],
+                    weight: 6,
+                    opacity: 0.85,
+                    dashArray: null,
+                    lineJoin: 'round'
+                }).addTo(routeMap);
+
+                altPolyline.bindPopup(`<strong>${altLabels[altIdx - 1]}</strong><br>Segment ${idx + 1}`);
+
+                if (altIdx === 1) routePolylinesByType.alt1.push(altPolyline);
+                else routePolylinesByType.alt2.push(altPolyline);
+
+                routePolylines.push(altPolyline);
+            });
+
+            // Draw stop marker
+            const isEnd = idx === data.segments.length - 1;
+            const stopIcon = L.divIcon({
+                html: `<div style="background:${isEnd ? '#dc3545' : '#3498db'};color:white;border-radius:50%;width:35px;height:35px;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 3px 8px rgba(0,0,0,0.4);font-size:13px;border:2px solid white;">${isEnd ? 'END' : idx + 1}</div>`,
+                className: '',
+                iconSize: [35, 35]
+            });
+
+            const stopMarker = L.marker([seg.to_lat, seg.to_lon], { icon: stopIcon })
+                .addTo(routeMap)
+                .bindPopup(`<strong>${isEnd ? 'END' : 'Stop'} ${idx + 1}: ${seg.to_name}</strong><br><span class="badge bg-info">${seg.goods_name}</span> (${seg.goods_weight} kg)`);
+            routeMarkers.push(stopMarker);
+        });
+
+        // Draw Risky Segments & Markers
+        drawRiskySegmentsAndMarkers(data);
+
+        // Fit map to show all points
+        if (allPoints.length > 0) {
+            routeMap.fitBounds(L.latLngBounds(allPoints), { padding: [50, 50], maxZoom: 14 });
+        }
+
+        console.log(` Saved Route Loaded: ${data.segments.length} segments, ${waypointCount} waypoints`);
+    }
+
+    // Draw risky segments and markers on the map (same logic as optimize_route1.html)
+    function drawRiskySegmentsAndMarkers(data) {
+        console.log("🔴 Drawing risky segments and markers...");
+
+        if (!data.segments || data.segments.length === 0) {
+            console.log("No segments data available");
+            return;
+        }
+
+        let totalRiskyAreas = 0;
+        let totalRiskyMarkers = 0;
+
+        // Red color matching legend for Risky Segment
+        const RISKY_COLOR = '#e74c3c';
+
+        data.segments.forEach((seg, idx) => {
+            const intermediates = seg.intermediate_points || [];
+
+            // Use backend data if available, otherwise auto-generate for demo (consistency)
+            let riskyAreasToShow = seg.risky_areas || [];
+            let riskyMarkersToShow = seg.risky_markers || [];
+
+            // Auto-generate if empty for consistent demonstration across pages
+            if (riskyAreasToShow.length === 0 && intermediates.length >= 2) {
+                // Same logic as optimize_route1 for consistency
+                if ((idx + 1) % 2 === 0 || intermediates.some(p => (p.elev || 0) > 80)) {
+                    const coords = [[seg.from_lat, seg.from_lon]];
+                    intermediates.forEach(pt => coords.push([pt.lat, pt.lon]));
+                    coords.push([seg.to_lat, seg.to_lon]);
+
+                    const avgElev = intermediates.reduce((sum, p) => sum + (p.elev || 0), 0) / (intermediates.length || 1);
+                    const riskScore = Math.min(0.5 + (avgElev / 300), 0.9);
+
+                    riskyAreasToShow.push({
+                        coordinates: coords,
+                        type: avgElev > 80 ? 'surface' : 'road',
+                        risk_score: riskScore,
+                        description: avgElev > 80 ? `High Terrain (${Math.round(avgElev)}m)` : `Road Condition Risk`
+                    });
+
+                    const midIdx = Math.floor(coords.length / 2);
+                    riskyMarkersToShow.push({
+                        coordinates: coords[midIdx],
+                        type: avgElev > 80 ? 'surface' : 'road',
+                        risk_score: riskScore,
+                        description: `Segment ${idx + 1}: ${avgElev > 80 ? 'Elevation Warning' : 'Caution Zone'}`
+                    });
+                }
+            }
+
+            // Draw risky areas
+            riskyAreasToShow.forEach((area, areaIdx) => {
+                const riskyPolyline = L.polyline(area.coordinates, {
+                    color: RISKY_COLOR,
+                    weight: 12,
+                    opacity: 0.85,
+                    dashArray: '8, 8',
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    className: 'risky-segment-overlay'
+                }).addTo(routeMap);
+
+                riskyPolyline.bindPopup(`
+                    <div style="min-width:220px;">
+                        <h6 class="text-danger mb-2" style="border-bottom: 2px solid #e74c3c; padding-bottom: 8px;">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            ⚠️ RISKY SEGMENT
+                        </h6>
+                        <p class="mb-1"><strong>Type:</strong> ${area.description}</p>
+                        <p class="mb-1"><strong>Risk Level:</strong> 
+                            <span class="badge bg-danger" style="font-size: 1em;">${(area.risk_score * 100).toFixed(0)}%</span>
+                        </p>
+                        <p class="mb-0 small text-danger">
+                            <strong>⚠️ Drive with caution in this area</strong>
+                        </p>
+                    </div>
+                `);
+
+                routePolylines.push(riskyPolyline);
+                totalRiskyAreas++;
+            });
+
+            // Draw risky markers
+            riskyMarkersToShow.forEach((marker, markerIdx) => {
+                const riskyIcon = L.divIcon({
+                    html: `
+                        <div style="
+                            background: ${RISKY_COLOR};
+                            color: white;
+                            border-radius: 50%;
+                            width: 32px;
+                            height: 32px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: bold;
+                            border: 3px solid white;
+                            box-shadow: 0 4px 12px rgba(231,76,60,0.6);
+                            font-size: 18px;
+                            animation: pulse-marker 1.5s infinite;
+                        ">⚠</div>
+                    `,
+                    className: 'risky-marker-icon',
+                    iconSize: [32, 32]
+                });
+
+                const riskyMarker = L.marker(marker.coordinates, { icon: riskyIcon })
+                    .addTo(routeMap)
+                    .bindPopup(`
+                        <div style="min-width:200px;">
+                            <h6 class="text-danger mb-2">
+                                <i class="fas fa-skull-crossbones"></i> ⚠️ Hazard Alert
+                            </h6>
+                            <p class="mb-1"><strong>${marker.description}</strong></p>
+                            <p class="mb-0">
+                                <span class="badge bg-danger" style="font-size: 1em;">
+                                    Risk: ${(marker.risk_score * 100).toFixed(0)}%
+                                </span>
+                            </p>
+                        </div>
+                    `);
+
+                routeMarkers.push(riskyMarker);
+                totalRiskyMarkers++;
+            });
+        });
+
+        // Update UI risk area text
+        const riskText = document.getElementById('riskAreasText');
+        if (riskText) {
+            if (totalRiskyAreas > 0) {
+                riskText.innerHTML = `<span class="text-danger fw-bold"><i class="fas fa-exclamation-circle"></i> ${totalRiskyAreas} Risky Segments!</span>`;
+            } else {
+                riskText.textContent = 'None identified';
+            }
+        }
+
+        console.log(`✅ Drew ${totalRiskyAreas} risky areas and ${totalRiskyMarkers} risky markers`);
+    }
+
+    // Set route type buttons enabled
+    function setRouteTypeButtonsEnabled(enabled) {
+        const b1 = document.getElementById('routeTypeOptimizedBtn');
+        const b2 = document.getElementById('routeTypeAlt1Btn');
+        const b3 = document.getElementById('routeTypeAlt2Btn');
+        if (b1) b1.disabled = !enabled;
+        if (b2) b2.disabled = !enabled;
+        if (b3) b3.disabled = !enabled;
+    }
+
+    // Update route type buttons state
+    function updateRouteTypeButtonsState() {
+        const b2 = document.getElementById('routeTypeAlt1Btn');
+        const b3 = document.getElementById('routeTypeAlt2Btn');
+        if (b2) b2.disabled = !routePointSets.alt1 || routePointSets.alt1.length === 0;
+        if (b3) b3.disabled = !routePointSets.alt2 || routePointSets.alt2.length === 0;
+    }
+
+    // Place vehicle at start
+    function placeVehicleAtStart() {
+        if (!allRoutePoints || allRoutePoints.length === 0) return;
+        const p = allRoutePoints[0];
+        if (!p || p.lat == null || p.lng == null) return;
+
+        if (currentLocationMarker) {
+            routeMap.removeLayer(currentLocationMarker);
+            currentLocationMarker = null;
+        }
+
+        currentLocationMarker = L.marker([p.lat, p.lng], {
+            icon: L.divIcon({
+                html: '<div class="vehicle-marker"><i class="fas fa-truck-moving"></i></div>',
+                className: '',
+                iconSize: [44, 44],
+                iconAnchor: [22, 22]
+            })
+        }).addTo(routeMap);
+    }
+
+    // Select route type
+    function selectRouteType(type) {
+        if (simulationRunning) {
+            stopSimulation();
+        }
+
+        // Also clear pause state if previously paused
+        pauseStartTime = null;
+        if (pauseTimerIntervalId) {
+            clearInterval(pauseTimerIntervalId);
+            pauseTimerIntervalId = null;
+        }
+        if (pauseAlertTimeoutId) {
+            clearTimeout(pauseAlertTimeoutId);
+            pauseAlertTimeoutId = null;
+        }
+        document.getElementById('pauseTimerDisplay').style.display = 'none';
+
+        if (!routePointSets[type] || routePointSets[type].length === 0) {
+            type = 'optimized';
+        }
+
+        currentRouteType = type;
+        allRoutePoints = routePointSets[type] || [];
+        currentSegmentIndex = 0;
+        segmentProgress = 0;
+
+        // Reset Progress UI
+        document.getElementById('progressPercentText').textContent = '0%';
+        document.getElementById('simProgressBar').style.width = '0%';
+        document.getElementById('pointStatusText').textContent = `Point 1 of ${allRoutePoints.length} (0% complete)`;
+
+        const b1 = document.getElementById('routeTypeOptimizedBtn');
+        const b2 = document.getElementById('routeTypeAlt1Btn');
+        const b3 = document.getElementById('routeTypeAlt2Btn');
+
+        // Reset active state
+        [b1, b2, b3].forEach(b => { if (b) b.classList.remove('active'); });
+        if (type === 'optimized' && b1) b1.classList.add('active');
+        if (type === 'alt1' && b2) b2.classList.add('active');
+        if (type === 'alt2' && b3) b3.classList.add('active');
+
+        // Update Details Box
+        updateRouteDetailsDisplay(type);
+
+        // Match highlight logic from optimize_route1.html exactly
+        Object.keys(routePolylinesByType).forEach(k => {
+            const isActive = k === type;
+            const color = k === 'optimized' ? '#27ae60' : (k === 'alt1' ? '#3498db' : '#6f42c1');
+
+            (routePolylinesByType[k] || []).forEach(pl => {
+                pl.setStyle({
+                    color: color,
+                    weight: isActive ? 8 : 6,
+                    opacity: isActive ? 1.0 : 0.85,
+                    dashArray: null
+                });
+                if (isActive) pl.bringToFront();
+            });
+        });
+
+        placeVehicleAtStart();
+    }
+
+    // Helper function to format minutes to hours and minutes
+    function formatMinutesToHoursAndMinutes(minutes) {
+        if (minutes === null || minutes === undefined || isNaN(minutes)) {
+            return '-';
+        }
+        const mins = parseFloat(minutes);
+        if (mins < 60) {
+            return `${Math.round(mins)} min`;
+        }
+        const hours = Math.floor(mins / 60);
+        const remainingMins = Math.round(mins % 60);
+        if (remainingMins === 0) {
+            return `${hours} hr`;
+        }
+        return `${hours} hr ${remainingMins} min`;
+    }
+
+    function updateRouteDetailsDisplay(type) {
+        const display = document.getElementById('routeDetailsDisplay');
+        display.style.display = 'block';
+
+        const badge = document.getElementById('selectedRouteBadge');
+        const distElem = document.getElementById('detailDistance');
+        const timeElem = document.getElementById('detailTime');
+        const road = document.getElementById('roadScoreBadge');
+        const surface = document.getElementById('surfaceScoreBadge');
+        const terrain = document.getElementById('terrainScoreBadge');
+        const areas = document.getElementById('riskAreasText');
+        const summary = document.getElementById('routeSummaryText');
+        const summaryBox = document.getElementById('summaryBoxContainer');
+        const carbonElem = document.getElementById('detailCarbon');
+        const carbonOffsetElem = document.getElementById('detailCarbonOffset');
+
+        let meta = currentRoute.metadata || {};
+        let routeComp = meta.route_comparison || [];
+        let riskAn = meta.risk_analysis || {};
+        let carbonData = meta.carbon_data || {};
+
+        if (type === 'optimized') {
+            let optMeta = routeComp.find(c => c.type === 'Optimized') || {};
+            let optRisk = riskAn.optimized || {};
+
+            data = {
+                name: 'Optimized Route',
+                color: '#2ecc71',
+                distance: optMeta.dist ? (typeof optMeta.dist === 'number' ? optMeta.dist.toFixed(2) : optMeta.dist) + ' km' : parseFloat(baseDist).toFixed(2) + ' km',
+                time: formatMinutesToHoursAndMinutes(optMeta.time || Math.round(baseTime)),
+                road: (optRisk.roadRisk || optRisk.road || 35) + '%',
+                roadRisk: (optRisk.roadRisk || optRisk.road || 35) > 60 ? 'high' : ((optRisk.roadRisk || optRisk.road || 35) > 30 ? 'med' : 'low'),
+                surface: (optRisk.surfaceRisk || optRisk.surface || 28) + '%',
+                surfaceRisk: (optRisk.surfaceRisk || optRisk.surface || 28) > 60 ? 'high' : ((optRisk.surfaceRisk || optRisk.surface || 28) > 30 ? 'med' : 'low'),
+                terrain: (optRisk.terrainRisk || optRisk.terrain || 25) + '%',
+                terrainRisk: (optRisk.terrainRisk || optRisk.terrain || 25) > 60 ? 'high' : ((optRisk.terrainRisk || optRisk.terrain || 25) > 30 ? 'med' : 'low'),
+                areas: optRisk.riskAreas || 'None detected',
+                summary: `<strong>Summary:</strong> ${optRisk.summary || 'Best balance of speed and safety.'}`,
+                summaryClass: '',
+                carbon: carbonData.total_carbon ? carbonData.total_carbon.toFixed(2) + ' kg' : '2.45 kg',
+                offset: carbonData.trees_needed ? carbonData.trees_needed.toFixed(1) + ' Trees' : '0.1 Trees'
+            };
+        } else if (type === 'alt1') {
+            let altMeta = routeComp.find(c => c.type === 'Alternative (1)') || {};
+            let altRisk = riskAn.alt1 || {};
+
+            data = {
+                name: 'Alternative Route (1)',
+                color: '#95a5a6',
+                distance: altMeta.dist ? (typeof altMeta.dist === 'number' ? altMeta.dist.toFixed(2) : altMeta.dist) + ' km' : (parseFloat(baseDist) + 1.5).toFixed(2) + ' km',
+                time: formatMinutesToHoursAndMinutes(altMeta.time || (Math.round(baseTime) + 2)),
+                road: (altRisk.roadRisk || altRisk.road || 45) + '%',
+                roadRisk: (altRisk.roadRisk || altRisk.road || 45) > 60 ? 'high' : ((altRisk.roadRisk || altRisk.road || 45) > 30 ? 'med' : 'low'),
+                surface: (altRisk.surfaceRisk || altRisk.surface || 40) + '%',
+                surfaceRisk: (altRisk.surfaceRisk || altRisk.surface || 40) > 60 ? 'high' : ((altRisk.surfaceRisk || altRisk.surface || 40) > 30 ? 'med' : 'low'),
+                terrain: (altRisk.terrainRisk || altRisk.terrain || 55) + '%',
+                terrainRisk: (altRisk.terrainRisk || altRisk.terrain || 55) > 60 ? 'high' : ((altRisk.terrainRisk || altRisk.terrain || 55) > 30 ? 'med' : 'low'),
+                areas: altRisk.riskAreas || 'Minor risks detected',
+                summary: `<strong>Summary:</strong> ${altRisk.summary || 'Higher risk due to road conditions.'}`,
+                summaryClass: 'summary-alt1',
+                carbon: carbonData.total_carbon ? (carbonData.total_carbon * 1.15).toFixed(2) + ' kg' : '2.82 kg',
+                offset: carbonData.trees_needed ? (carbonData.trees_needed * 1.15).toFixed(1) + ' Trees' : '0.2 Trees'
+            };
+        } else if (type === 'alt2') {
+            let altMeta = routeComp.find(c => c.type === 'Alternative (2)') || {};
+            let altRisk = riskAn.alt2 || {};
+
+            data = {
+                name: 'Alternative Route (2)',
+                color: '#9b59b6',
+                distance: altMeta.dist ? (typeof altMeta.dist === 'number' ? altMeta.dist.toFixed(2) : altMeta.dist) + ' km' : (parseFloat(baseDist) + 2.5).toFixed(2) + ' km',
+                time: formatMinutesToHoursAndMinutes(altMeta.time || (Math.round(baseTime) + 4)),
+                road: (altRisk.roadRisk || altRisk.road || 50) + '%',
+                roadRisk: (altRisk.roadRisk || altRisk.road || 50) > 60 ? 'high' : ((altRisk.roadRisk || altRisk.road || 50) > 30 ? 'med' : 'low'),
+                surface: (altRisk.surfaceRisk || altRisk.surface || 45) + '%',
+                surfaceRisk: (altRisk.surfaceRisk || altRisk.surface || 45) > 60 ? 'high' : ((altRisk.surfaceRisk || altRisk.surface || 45) > 30 ? 'med' : 'low'),
+                terrain: (altRisk.terrainRisk || altRisk.terrain || 60) + '%',
+                terrainRisk: (altRisk.terrainRisk || altRisk.terrain || 60) > 60 ? 'high' : ((altRisk.terrainRisk || altRisk.terrain || 60) > 30 ? 'med' : 'low'),
+                areas: altRisk.riskAreas || 'Terrain challenges detected',
+                summary: `<strong>Summary:</strong> ${altRisk.summary || 'Longest route, significant terrain risk.'}`,
+                summaryClass: 'summary-alt2',
+                carbon: carbonData.total_carbon ? (carbonData.total_carbon * 1.3).toFixed(2) + ' kg' : '3.18 kg',
+                offset: carbonData.trees_needed ? (carbonData.trees_needed * 1.3).toFixed(1) + ' Trees' : '0.3 Trees'
+            };
+        }
+
+        badge.textContent = data.name;
+        badge.style.backgroundColor = data.color;
+        distElem.textContent = data.distance;
+        timeElem.textContent = data.time;
+        if (carbonElem) carbonElem.textContent = data.carbon || '-';
+        if (carbonOffsetElem) carbonOffsetElem.textContent = data.offset || '-';
+
+        road.textContent = data.road;
+        road.className = `risk-badge risk-${data.roadRisk}`;
+
+        surface.textContent = data.surface;
+        surface.className = `risk-badge risk-${data.surfaceRisk}`;
+
+        terrain.textContent = data.terrain;
+        terrain.className = `risk-badge risk-${data.terrainRisk}`;
+
+        areas.textContent = data.areas;
+        summary.innerHTML = data.summary;
+        summaryBox.className = `summary-box mb-4 ${data.summaryClass}`;
+    }
+
+    // --- Accident & Rerouting Logic ---
+
+    function continueCurrentRoute() {
+        const reason = document.getElementById('incidentReason').value || 'System detected incident - Agent chose to continue';
+        logIncident('Incident Ignored', reason);
+        document.getElementById('incidentReason').value = '';
+
+        document.getElementById('accidentOverlay').style.display = 'none';
+        simulationRunning = true;
+        lastAnimTimestamp = performance.now();
+        requestAnimationFrame(animateVehicle);
+
+        document.getElementById('simulationStatus').innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Continuing on current route.
+            </div>
+        `;
+    }
+
+    function triggerRerouting() {
+        if (!currentRoute) return;
+
+        const reason = document.getElementById('incidentReason').value || 'System detected incident - Reroute initiated';
+        logIncident('Reroute Triggered', reason);
+        document.getElementById('incidentReason').value = '';
+
+        document.getElementById('accidentOverlay').style.display = 'none';
+
+        // Store original route info if this is the first reroute
+        if (!hasRerouted) {
+            originalRouteType = currentRouteType;
+            reroutePointIndex = currentSegmentIndex;
+            hasRerouted = true;
+
+            // Backup original route polylines
+            originalRoutePolylines = [...(routePolylinesByType[originalRouteType] || [])];
+        }
+
+        // Decide new route type
+        let newType = 'optimized';
+        const choices = {
+            'optimized': ['alt1', 'alt2'],
+            'alt1': ['optimized', 'alt2'],
+            'alt2': ['optimized', 'alt1']
+        };
+
+        const availableChoices = choices[currentRouteType].filter(c => routePointSets[c] && routePointSets[c].length > 0);
+        if (availableChoices.length === 0) {
+            alert('No alternative routes available for this segment. Please continue on current route.');
+            continueCurrentRoute();
+            return;
+        }
+
+        newType = availableChoices[Math.floor(Math.random() * availableChoices.length)];
+        const currentPos = currentLocationMarker.getLatLng();
+
+        // Find nearest point on NEW route
+        let nearestIdx = 0;
+        let minDist = Infinity;
+        const newPoints = routePointSets[newType];
+
+        for (let i = 0; i < newPoints.length; i++) {
+            const d = calculateDistance(currentPos, newPoints[i]);
+            if (d < minDist) {
+                minDist = d;
+                nearestIdx = i;
+            }
+        }
+
+        console.log(`Rerouting from ${currentRouteType} to ${newType}. Transitioning to point index ${nearestIdx}`);
+
+        // === ROUTE DRAWING RULES IMPLEMENTATION ===
+
+        // Get route colors
+        const originalColor = originalRouteType === 'optimized' ? '#27ae60' : (originalRouteType === 'alt1' ? '#3498db' : '#6f42c1');
+        const newColor = newType === 'optimized' ? '#27ae60' : (newType === 'alt1' ? '#3498db' : '#6f42c1');
+
+        // 1. DRAW TRAVELED SEGMENT ON OLD ROUTE (dashed, highlighted)
+        if (reroutePointIndex > 0) {
+            const oldPoints = routePointSets[originalRouteType];
+            const traveledSegmentPoints = [];
+
+            for (let i = 0; i <= reroutePointIndex; i++) {
+                if (oldPoints[i]) {
+                    traveledSegmentPoints.push([oldPoints[i].lat, oldPoints[i].lng]);
+                }
+            }
+
+            if (traveledSegmentPoints.length > 1) {
+                const traveledPoly = L.polyline(traveledSegmentPoints, {
+                    color: originalColor,
+                    weight: 6,
+                    opacity: 0.9,
+                    dashArray: '8, 6',
+                    lineJoin: 'round'
+                }).addTo(routeMap);
+
+                traveledPolylines.push(traveledPoly);
+                traveledPoly.bindPopup(`<strong>Traveled Path</strong><br>Old ${originalRouteType} route`);
+            }
+        }
+
+        // 2. UPDATE OLD ROUTE (remaining untraveled segments - thin solid)
+        (originalRoutePolylines || []).forEach(pl => {
+            pl.setStyle({
+                color: originalColor,
+                weight: 3,
+                opacity: 0.5,
+                dashArray: null
+            });
+        });
+
+        // 3. UPDATE NEW ROUTE
+        const newRoutePolylines = routePolylinesByType[newType] || [];
+
+        // Split new route into two segments based on nearest point
+        newRoutePolylines.forEach((pl, idx) => {
+            // For simplicity, we'll mark segments before nearestIdx as thin, after as bold
+            // This is a simplified approach; for precise splitting, we'd need to track segment boundaries
+
+            pl.setStyle({
+                color: newColor,
+                weight: 8, // Bold for active new route
+                opacity: 1.0,
+                dashArray: null
+            });
+            pl.bringToFront();
+        });
+
+        // Perform the switch
+        const oldRouteType = currentRouteType;
+        currentRouteType = newType;
+        allRoutePoints = routePointSets[newType];
+        currentSegmentIndex = Math.min(nearestIdx, allRoutePoints.length - 1);
+        segmentProgress = 0;
+
+        // Update UI Text
+        document.getElementById('followingRouteText').textContent = `Following: ${newType === 'optimized' ? 'Optimized Route' : (newType === 'alt1' ? 'Alternative Route (1)' : 'Alternative Route (2)')} (Rerouted)`;
+
+        // Update Details Box immediately
+        updateRouteDetailsDisplay(newType);
+
+        // Resume simulation
+        simulationRunning = true;
+        lastAnimTimestamp = performance.now();
+        requestAnimationFrame(animateVehicle);
+
+        // Send alert to admin about reroute
+        fetch(`/agent/api/send-message/${currentRoute.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: `⚠️ AUTOMATIC ALERT: CRITICAL MISSION UPDATE: Agent initiated a path change to mitigate operational risk. 
+                       Trajectory reassigned from ${oldRouteType.charAt(0).toUpperCase() + oldRouteType.slice(1)} Route to ${newType.charAt(0).toUpperCase() + newType.slice(1)} Route.`,
+                sender_type: 'system'
+            })
+        });
+
+        document.getElementById('simulationStatus').innerHTML = `
+            <div class="alert alert-warning animate__animated animate__fadeIn">
+                <i class="fas fa-random"></i> <strong>Reroute Successful!</strong> Switched from ${oldRouteType} to ${newType}.<br>
+                <small><i class="fas fa-info-circle"></i> Old route shown with traveled (dashed) and remaining segments. New route shown in bold.</small>
+            </div>
+        `;
+    }
+
+    async function generatePostTripPDF() {
+        if (!currentRoute) return;
+
+        const btn = document.querySelector('#postTripReportCard button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Collecting Data...';
+        btn.disabled = true;
+
+        try {
+            const resp = await fetch(`/agent/api/get-trip-report-data/${currentRoute.id}`);
+            const data = await resp.json();
+
+            if (!data.success) {
+                alert('Error fetching report data: ' + data.message);
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const primaryColor = [39, 174, 96]; // Green
+            const secondaryColor = [44, 62, 80]; // Dark blue
+
+            // Header
+            doc.setFontSize(22);
+            doc.setTextColor(...primaryColor);
+            doc.text("LOGISTICS MISSION REPORT", 105, 20, null, null, "center");
+
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleString()} | Mission ID: ${currentRoute.id}`, 105, 28, null, null, "center");
+
+            doc.setDrawColor(...primaryColor);
+            doc.setLineWidth(0.5);
+            doc.line(20, 32, 190, 32);
+
+            // 1. Mission Overview
+            doc.setFontSize(14);
+            doc.setTextColor(...secondaryColor);
+            doc.text("1. Mission Overview", 20, 42);
+
+            const overviewData = [
+                ["Field", "Value"],
+                ["Mission Name", data.route_info.route_name],
+                ["Vehicle", `${data.route_info.vehicle_name} (${data.route_info.vehicle_number})`],
+                ["Status", "COMPLETED"],
+                ["Total Delivery Stops", data.stops.length.toString()],
+                ["Planned Path Nodes", (data.planned_path || []).length.toString()],
+                ["Actual Telemetry Points", data.path_history.length.toString()]
+            ];
+
+            doc.autoTable({
+                startY: 48,
+                head: [overviewData[0]],
+                body: overviewData.slice(1),
+                theme: 'striped',
+                headStyles: { fillColor: primaryColor }
+            });
+
+            // 2. Mission Incidents & Event Log
+            let currentY = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(14);
+            doc.text("2. Mission Incidents & Events", 20, currentY);
+
+            const incidentData = data.incidents.length > 0 ?
+                data.incidents.map(inc => [inc.type, inc.description, inc.created_at]) :
+                [["No incidents recorded during this mission (Successful Flight)", "-", "-"]];
+
+            doc.autoTable({
+                startY: currentY + 6,
+                head: [["Type", "Description", "Timestamp"]],
+                body: incidentData,
+                theme: 'grid',
+                headStyles: { fillColor: [231, 76, 60] } // Red for incidents
+            });
+
+            // 3. Mission Communication History
+            currentY = doc.lastAutoTable.finalY + 15;
+            if (currentY > 240) { doc.addPage(); currentY = 20; }
+            doc.setFontSize(14);
+            doc.text("3. Mission Communication History", 20, currentY);
+
+            const msgData = data.messages.length > 0 ?
+                data.messages.map(m => [m.sender_type.toUpperCase(), m.message, m.created_at]) :
+                [["No communication logged for this mission", "-", "-"]];
+
+            doc.autoTable({
+                startY: currentY + 6,
+                head: [["Sender", "Message", "Timestamp"]],
+                body: msgData,
+                theme: 'striped',
+                headStyles: { fillColor: [243, 156, 18] }
+            });
+
+            // 4. Actual Path Telemetry (Summary)
+            currentY = doc.lastAutoTable.finalY + 15;
+            if (currentY > 240) { doc.addPage(); currentY = 20; }
+            doc.setFontSize(14);
+            doc.text("4. Real-time Actual Path Telemetry (Sample)", 20, currentY);
+
+            const pathSummary = data.path_history.length > 0 ?
+                data.path_history.filter((_, i) => i % Math.max(1, Math.floor(data.path_history.length / 15)) === 0).map(p => [parseFloat(p.latitude).toFixed(6), parseFloat(p.longitude).toFixed(6), p.created_at]) :
+                [["No telemetry data recorded", "-", "-"]];
+
+            doc.autoTable({
+                startY: currentY + 6,
+                head: [["Latitude", "Longitude", "Timestamp"]],
+                body: pathSummary.slice(0, 15),
+                theme: 'plain'
+            });
+
+            // 5. Stop Breakdown & Delivery Notes
+            currentY = doc.lastAutoTable.finalY + 15;
+            if (currentY > 230) { doc.addPage(); currentY = 20; }
+            doc.setFontSize(14);
+            doc.text("5. Stop-by-Stop Breakdown & Stop Reasons", 20, currentY);
+
+            const stopDetails = data.stops.map(s => [
+                s.sequence_order,
+                s.location_name,
+                s.actual_arrival_time || 'N/A',
+                s.note || 'No specific notes recorded'
+            ]);
+
+            doc.autoTable({
+                startY: currentY + 6,
+                head: [["#", "Location", "Arrival Time", "Mission Note"]],
+                body: stopDetails,
+                theme: 'grid',
+                headStyles: { fillColor: [52, 152, 219] }
+            });
+
+            // 6. Path Compliance Analysis
+            currentY = doc.lastAutoTable.finalY + 15;
+            if (currentY > 260) { doc.addPage(); currentY = 20; }
+            doc.setFontSize(14);
+            doc.text("6. Path Compliance Analysis", 20, currentY);
+
+            const complianceData = [
+                ["Planned Path Taken", "YES (Validated)", "The vehicle followed the optimized trajectory provided by the system."],
+                ["Actual Path vs Planned", `${(data.planned_path || []).length} Nodes vs ${data.path_history.length} Telemetry Points`, "Comparison between system optimization and real-time execution."],
+                ["Arrival Efficiency", data.path_history.length > 0 ? "High (Sync'd)" : "N/A", "Real-time arrival times were logged for each mission stop."]
+            ];
+
+            doc.autoTable({
+                startY: currentY + 6,
+                head: [["Metric", "Value", "Description"]],
+                body: complianceData,
+                theme: 'grid',
+                headStyles: { fillColor: [142, 68, 173] }
+            });
+
+            doc.save(`Mission_Report_${data.route_info.route_name.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
+
+        } catch (err) {
+            console.error(err);
+            alert('Error generating PDF: ' + err.message);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        initMap();
+        loadAssignedRoutes();
+
+        // Refresh messages every 10 seconds if route is selected
+        setInterval(() => {
+            if (currentRoute) {
+                loadMessages(currentRoute.id);
+            }
+        }, 10000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1001 @@
+vehicle_type,age,fuel_type,co2_g_per_km
+Passenger Cars Small Diesel Euro 2,29,Diesel,158
+Light Commercial Vehicles N1II Diesel Hybrid Euro 5,16,Diesel Hybrid,110
+Light Commercial Vehicles N1III Diesel Hybrid Euro 4,20,Diesel Hybrid,110
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro VI D/E,17,Diesel,700
+Passenger Cars LargeSUVExecutive Petrol Hybrid Euro 6 dtemp,8,Petrol Hybrid,92
+Light Commercial Vehicles N1II LPG Bifuel Conventional,45,LPG Bi-fuel,150
+Buses Urban Buses Midi <=15 t Diesel Euro VI D/E,17,Diesel,700
+Buses Battery electric Euro VII,17,Battery electric,0
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro III,33,Diesel,820
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro VII,17,Diesel,700
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro VI A/B/C",17,Diesel,700
+Buses LPG Euro VII,17,LPG,150
+LCategory Microcar Diesel Euro 1,26,Diesel,150
+Passenger Cars LargeSUVExecutive Petrol Euro 6 a/b/c,11,Petrol,132
+Light Commercial Vehicles N1III LPG Bifuel Euro 4,20,LPG Bi-fuel,150
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro II,33,Fuel Cell Electric Vehicle,0
+LCategory Mopeds 4stroke <50 cm³ Petrol Euro 1,26,Petrol,68
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro IV,33,Diesel,820
+Passenger Cars Medium Diesel PHEV Euro 7,0,Diesel PHEV,42
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro IV,33,Diesel,820
+Heavy Duty Trucks LPG Euro III,33,LPG,150
+Buses Urban Buses Standard 15 18 t Diesel Euro VI D/E,17,Diesel,700
+Passenger Cars Small Petrol Euro 4,20,Petrol,158
+Passenger Cars Small Flexifuel Vehicle Euro 3,25,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Rigid >32 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1III Flexifuel Vehicle Euro 6 dtemp,8,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Rigid >32 t Diesel Euro VI A/B/C,17,Diesel,700
+Passenger Cars Mini CNG Bifuel Euro 5,16,CNG Bi-fuel,100
+Buses Urban CNG Buses 15 18 t CNG Euro VI D/E,17,CNG,820
+Buses Urban Biodiesel Buses Biodiesel Euro VII,17,Biodiesel,700
+Passenger Cars LargeSUVExecutive Diesel Hybrid Euro 5,16,Diesel Hybrid,110
+Heavy Duty Trucks Diesel PHEV Euro II,33,Diesel PHEV,42
+Passenger Cars Medium Diesel Euro 3,25,Diesel,152
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro I",33,Diesel,820
+Light Commercial Vehicles N1II Diesel PHEV Euro 6 d/e,5,Diesel PHEV,42
+LCategory Mopeds 2stroke <50 cm³ Petrol Euro 4,9,Petrol,62
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro VI D/E,17,Diesel,700
+Passenger Cars Small Petrol Euro 3,25,Petrol,171
+Light Commercial Vehicles N1III Battery electric Euro 6 a/b/c,11,Battery electric,0
+Buses LPG Euro III,33,LPG,150
+Light Commercial Vehicles N1III Petrol Euro 1,32,Petrol,180
+Light Commercial Vehicles N1II Flexifuel Vehicle Euro 6 dtemp,8,Flexi-fuel Vehicle,150
+LCategory Microcar Diesel Euro 5,5,Diesel,150
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro VI A/B/C,17,Diesel,700
+Light Commercial Vehicles N1II Petrol Euro 6 dtemp,8,Petrol,140
+Light Commercial Vehicles N1II Diesel Euro 4,20,Diesel,150
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro V,17,Diesel,700
+Buses Urban CNG Buses CNG Euro II,33,CNG,900
+Light Commercial Vehicles N1I CNG Bifuel Euro 7,0,CNG Bi-fuel,150
+Light Commercial Vehicles N1III CNG Bifuel Euro 4,20,CNG Bi-fuel,150
+Passenger Cars Small Battery electric Euro 6 d/e,5,Battery electric,0
+Buses Urban Biodiesel Buses Biodiesel Euro V,17,Biodiesel,700
+Light Commercial Vehicles N1I Diesel Euro 6 a/b/c,11,Diesel,140
+Light Commercial Vehicles N1II Flexifuel Vehicle Euro 7,0,Flexi-fuel Vehicle,150
+LCategory Motorcycles 4stroke >750 cm³ Petrol Euro 1,26,Petrol,150
+Light Commercial Vehicles N1II Petrol Euro 1,32,Petrol,180
+Passenger Cars Medium Fuel Cell Electric Vehicle Euro 7,0,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro II,33,Diesel,820
+LCategory Motorcycles 4stroke >750 cm³ Petrol Euro 2,22,Petrol,140
+Passenger Cars Medium LPG Bifuel Euro 2,29,LPG Bi-fuel,150
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 7,0,Fuel Cell Electric Vehicle,0
+LCategory Quad & ATVs Petrol Euro 5,5,Petrol,110
+Buses Coaches Standard <=18 t Diesel Euro I,33,Diesel,820
+Light Commercial Vehicles N1II Diesel PHEV Euro 4,20,Diesel PHEV,42
+Light Commercial Vehicles N1II CNG Bifuel Euro 6 a/b/c,11,CNG Bi-fuel,150
+Passenger Cars Mini Petrol Hybrid Euro 6 dtemp,8,Petrol Hybrid,92
+Passenger Cars Small Diesel Hybrid Euro 6 a/b/c,11,Diesel Hybrid,110
+Buses Urban Biodiesel Buses Biodiesel Euro II,33,Biodiesel,820
+Heavy Duty Trucks Rigid >32 t Diesel Euro II,33,Diesel,820
+Light Commercial Vehicles N1I CNG Bifuel Euro 4,20,CNG Bi-fuel,150
+LCategory Microcar Diesel Euro 4,9,Diesel,150
+Passenger Cars Small Petrol ECE 15/04,38,Petrol,210
+Light Commercial Vehicles N1III Diesel PHEV Euro 6 d/e,5,Diesel PHEV,42
+Passenger Cars Medium Diesel PHEV Euro 7,0,Diesel PHEV,42
+Heavy Duty Trucks CNG Euro VII,17,CNG,820
+Passenger Cars LargeSUVExecutive Petrol Hybrid Euro 6 a/b/c,11,Petrol Hybrid,92
+Light Commercial Vehicles N1III Diesel Euro 4,20,Diesel,150
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro IV,33,Diesel,820
+Heavy Duty Trucks Articulated 34 40 t Diesel Euro VII,17,Diesel,700
+Buses Fuel Cell Electric Vehicle Euro II,33,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks CNG Euro III,33,CNG,900
+Passenger Cars Small LPG Bifuel Euro 3,25,LPG Bi-fuel,150
+Buses Urban Buses Diesel Hybrid Diesel Hybrid Euro VII,17,Diesel Hybrid,110
+Passenger Cars Medium Petrol Euro 1,33,Petrol,197
+Light Commercial Vehicles N1I CNG Bifuel Euro 1,32,CNG Bi-fuel,150
+Light Commercial Vehicles N1II Diesel Euro 6 d/e,5,Diesel,140
+Buses Diesel Hybrid (NOVC) Euro II,33,Diesel Hybrid,110
+Buses Urban Biodiesel Buses Biodiesel Conventional,37,Biodiesel,850
+Passenger Cars Medium Petrol Euro 7,0,Petrol,119
+Buses Petrol Euro VI A/B/C,17,Petrol,150
+Passenger Cars LargeSUVExecutive Petrol Hybrid Euro 4,20,Petrol Hybrid,92
+Passenger Cars Medium Petrol Euro 6 dtemp,8,Petrol,132
+Light Commercial Vehicles N1I Flexifuel Vehicle Euro 6 dtemp,8,Flexi-fuel Vehicle,150
+Passenger Cars Small Petrol PHEV Euro 7,0,Petrol PHEV,42
+Passenger Cars LargeSUVExecutive Petrol Euro 5,16,Petrol,145
+Passenger Cars Medium Diesel Hybrid Euro 5,16,Diesel Hybrid,110
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro VII,17,Diesel,700
+Buses Fuel Cell Electric Vehicle Euro VII,17,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1III CNG Bifuel Euro 3,25,CNG Bi-fuel,150
+Light Commercial Vehicles N1I Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+Passenger Cars Small Petrol Improved Conventional,35,Petrol,210
+Passenger Cars Medium Flexifuel Vehicle Euro 6 dtemp,8,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1II Diesel PHEV Euro 6 a/b/c,11,Diesel PHEV,42
+LCategory Motorcycles 2stroke >50 cm³ Petrol Euro 5,5,Petrol,60
+Passenger Cars Small Flexifuel Vehicle Euro 6 d/e,5,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro VI A/B/C,17,Diesel,700
+Passenger Cars Medium Diesel Conventional,45,Diesel,170
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro V,17,Diesel,700
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 6 a/b/c,11,LPG Bi-fuel,150
+Passenger Cars Medium Fuel Cell Electric Vehicle Euro 6 dtemp,8,Fuel Cell Electric Vehicle,0
+Passenger Cars Small Flexifuel Vehicle Euro 6 dtemp,8,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1I Petrol Hybrid Euro 6 d/e,5,Petrol Hybrid,92
+Passenger Cars Medium Petrol Hybrid Euro 4,20,Petrol Hybrid,92
+LCategory Motorcycles 2stroke >50 cm³ Petrol Euro 3,19,Petrol,64
+LCategory Motorcycles 4stroke 250 750 cm³ Petrol Euro 5,5,Petrol,110
+Light Commercial Vehicles N1I Diesel PHEV Euro 5,16,Diesel PHEV,42
+Passenger Cars Medium Petrol Improved Conventional,35,Petrol,210
+Light Commercial Vehicles N1I Battery electric Euro 6 a/b/c,11,Battery electric,0
+Light Commercial Vehicles N1I Battery electric Euro 7,0,Battery electric,0
+Light Commercial Vehicles N1II CNG Bifuel Euro 6 d/e,5,CNG Bi-fuel,150
+Passenger Cars Small Diesel Euro 4,20,Diesel,146
+Light Commercial Vehicles N1I CNG Bifuel Conventional,45,CNG Bi-fuel,150
+"Heavy Duty Trucks Rigid 7,5 12 t CNG Euro VI D/E",17,CNG,820
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro II,33,Diesel,820
+Light Commercial Vehicles N1III LPG Bifuel Euro 2,28,LPG Bi-fuel,150
+Passenger Cars Small LPG Bifuel Euro 5,16,LPG Bi-fuel,150
+LCategory Motorcycles 2stroke >50 cm³ Petrol Euro 3,19,Petrol,64
+Passenger Cars Small Petrol Euro 1,33,Petrol,197
+Buses Battery electric Conventional,37,Battery electric,0
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro I",33,Diesel,820
+Heavy Duty Trucks Articulated 28 34 t Diesel Conventional,37,Diesel,850
+Passenger Cars Mini Battery electric Euro 6 d/e,5,Battery electric,0
+Heavy Duty Trucks Articulated 14 20 t Diesel Euro I,33,Diesel,820
+Heavy Duty Trucks Articulated 14 20 t Diesel Euro VI A/B/C,17,Diesel,700
+Passenger Cars Small CNG Bifuel Euro 4,20,CNG Bi-fuel,110
+Passenger Cars Small Diesel Euro 6 d/e,5,Diesel,134
+Light Commercial Vehicles N1II Diesel PHEV Euro 6 a/b/c,11,Diesel PHEV,42
+Passenger Cars Mini Diesel Euro 6 d/e,5,Diesel,134
+Buses Urban CNG Buses 15 18 t CNG Euro VI D/E,17,CNG,820
+Passenger Cars LargeSUVExecutive CNG Bifuel Euro 4,20,CNG Bi-fuel,110
+Light Commercial Vehicles N1I CNG Bifuel Euro 2,28,CNG Bi-fuel,150
+Light Commercial Vehicles N1I Diesel Euro 6 a/b/c,11,Diesel,140
+Passenger Cars Small Flexifuel Vehicle Euro 5,16,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Rigid >32 t Diesel Euro VI A/B/C,17,Diesel,700
+Passenger Cars LargeSUVExecutive Petrol Hybrid Euro 7,0,Petrol Hybrid,92
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro III,33,Diesel,820
+Light Commercial Vehicles N1II Diesel Hybrid Euro 6 dtemp,8,Diesel Hybrid,110
+Heavy Duty Trucks Diesel PHEV Euro VII,17,Diesel PHEV,42
+Light Commercial Vehicles N1III Diesel Euro 2,28,Diesel,160
+Light Commercial Vehicles N1III Petrol PHEV Euro 5,16,Petrol PHEV,42
+Light Commercial Vehicles N1III Petrol Hybrid Euro 5,16,Petrol Hybrid,92
+Buses Coaches Standard <=18 t Diesel Euro VI A/B/C,17,Diesel,700
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 6 dtemp,8,Fuel Cell Electric Vehicle,0
+Passenger Cars Mini CNG Bifuel Euro 6 d/e,5,CNG Bi-fuel,100
+LCategory Battery electric (Microcar) Euro 3,19,Battery electric (Micro-car),0
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro IV,33,Diesel,820
+Heavy Duty Trucks Diesel PHEV Euro I,33,Diesel PHEV,42
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro III,33,Diesel,820
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro VII,17,Diesel,700
+Buses Urban Buses Midi <=15 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1I LPG Bifuel Euro 1,32,LPG Bi-fuel,150
+Buses Urban Buses Standard 15 18 t Diesel Euro II,33,Diesel,820
+Heavy Duty Trucks Rigid >32 t Diesel Euro VII,17,Diesel,700
+Heavy Duty Trucks CNG Euro I,33,CNG,900
+Light Commercial Vehicles N1I Petrol Hybrid Euro 5,16,Petrol Hybrid,92
+Light Commercial Vehicles N1I LPG Bifuel Euro 4,20,LPG Bi-fuel,150
+Light Commercial Vehicles N1I Petrol Euro 3,25,Petrol,160
+Buses Urban Buses Standard 15 18 t Diesel Conventional,37,Diesel,850
+LCategory Quad & ATVs Petrol Euro 4,9,Petrol,120
+Buses Urban Buses Standard 15 18 t Diesel Euro IV,33,Diesel,820
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro II,33,Diesel,820
+Buses Diesel Hybrid (NOVC) Euro III,33,Diesel Hybrid,110
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro VI A/B/C,17,Diesel,700
+Light Commercial Vehicles N1III Diesel PHEV Euro 4,20,Diesel PHEV,42
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 5,16,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Diesel Hybrid Euro IV,33,Diesel Hybrid,110
+LCategory Motorcycles 4stroke <250 cm³ Petrol Euro 2,22,Petrol,140
+Passenger Cars Small Diesel Euro 6 a/b/c,11,Diesel,134
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 6 d/e,5,LPG Bi-fuel,150
+Passenger Cars LargeSUVExecutive Petrol ECE 15/0001,46,Petrol,210
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro VI D/E",17,Diesel,700
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro VI D/E,17,Fuel Cell Electric Vehicle,0
+Buses Urban Buses Midi <=15 t Diesel Euro VI A/B/C,17,Diesel,700
+Passenger Cars Medium Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro I",33,Diesel,820
+LCategory Battery electric (Moped) Euro 2,22,Battery electric (Moped),0
+Heavy Duty Trucks Rigid 14 20 t Diesel Conventional,37,Diesel,850
+Passenger Cars 2Stroke Petrol Conventional,45,Petrol,210
+Passenger Cars LargeSUVExecutive Flexifuel Vehicle Euro 5,16,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1III Battery electric Euro 6 d/e,5,Battery electric,0
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro II,33,Diesel,820
+Passenger Cars LargeSUVExecutive Flexifuel Vehicle Euro 6 dtemp,8,Flexi-fuel Vehicle,150
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Conventional",37,Diesel,850
+Passenger Cars Small Diesel Euro 5,16,Diesel,140
+Buses Urban Buses Articulated >18 t Diesel Euro VI D/E,17,Diesel,700
+Light Commercial Vehicles N1II Diesel Euro 6 a/b/c,11,Diesel,140
+LCategory Battery electric (Moped) Euro 5,5,Battery electric (Moped),0
+Buses Fuel Cell Electric Vehicle Euro V,17,Fuel Cell Electric Vehicle,0
+Passenger Cars Medium Petrol PHEV Euro 6 dtemp,8,Petrol PHEV,42
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro IV,33,Diesel,820
+Passenger Cars Mini Petrol Euro 7,0,Petrol,119
+Buses Battery electric Euro IV,33,Battery electric,0
+Light Commercial Vehicles N1II LPG Bifuel Euro 7,0,LPG Bi-fuel,150
+Light Commercial Vehicles N1II Petrol Euro 2,28,Petrol,170
+Heavy Duty Trucks Battery electric Euro V,17,Battery electric,0
+Light Commercial Vehicles N1I Flexifuel Vehicle Euro 7,0,Flexi-fuel Vehicle,150
+Passenger Cars Small LPG Bifuel Conventional,45,LPG Bi-fuel,150
+Light Commercial Vehicles N1III Petrol Euro 3,25,Petrol,160
+LCategory Motorcycles 4stroke >750 cm³ Petrol Conventional,35,Petrol,160
+Light Commercial Vehicles N1II Petrol Conventional,45,Petrol,190
+Light Commercial Vehicles N1III Petrol Conventional,45,Petrol,190
+LCategory Battery electric (Microcar) Euro 4,9,Battery electric (Micro-car),0
+Passenger Cars Small LPG Bifuel Euro 3,25,LPG Bi-fuel,150
+Light Commercial Vehicles N1II Diesel Euro 1,32,Diesel,165
+Light Commercial Vehicles N1III Petrol Euro 6 d/e,5,Petrol,140
+Light Commercial Vehicles N1III Battery electric Euro 6 dtemp,8,Battery electric,0
+Light Commercial Vehicles N1III Diesel PHEV Euro 6 a/b/c,11,Diesel PHEV,42
+Passenger Cars Small Petrol Euro 6 d/e,5,Petrol,132
+Passenger Cars Medium Petrol ECE 15/02,44,Petrol,210
+Passenger Cars Medium LPG Bifuel Euro 7,0,LPG Bi-fuel,150
+Heavy Duty Trucks Diesel Hybrid Conventional,37,Diesel Hybrid,110
+Light Commercial Vehicles N1I Diesel PHEV Euro 6 a/b/c,11,Diesel PHEV,42
+Passenger Cars LargeSUVExecutive Diesel Hybrid Euro 7,0,Diesel Hybrid,110
+Passenger Cars Mini Battery electric Euro 7,0,Battery electric,0
+Passenger Cars Medium Flexifuel Vehicle Euro 5,16,Flexi-fuel Vehicle,150
+Heavy Duty Trucks LPG Conventional,37,LPG,150
+LCategory Battery electric (Moped) Euro 3,19,Battery electric (Moped),0
+Passenger Cars Small Petrol Hybrid Euro 4,20,Petrol Hybrid,92
+Heavy Duty Trucks Articulated < 40 t LNG Euro VII,17,LNG,150
+Heavy Duty Trucks LPG Euro VII,17,LPG,150
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 5,16,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1III Flexifuel Vehicle Euro 6 d/e,5,Flexi-fuel Vehicle,150
+Buses LPG Euro IV,33,LPG,150
+Light Commercial Vehicles N1III Petrol Hybrid Euro 6 a/b/c,11,Petrol Hybrid,92
+Passenger Cars Mini LPG Bifuel Euro 6 d/e,5,LPG Bi-fuel,150
+Buses Urban Buses Standard 15 18 t Diesel Euro VI A/B/C,17,Diesel,700
+Buses Urban Buses Diesel Hybrid Diesel Hybrid Euro VII,17,Diesel Hybrid,110
+Light Commercial Vehicles N1II Diesel Hybrid Euro 7,0,Diesel Hybrid,110
+Buses LPG Euro VI D/E,17,LPG,150
+Buses Urban CNG Buses <=15 t CNG Euro VII,17,CNG,820
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro VI A/B/C,17,Diesel,700
+Heavy Duty Trucks LNG Euro IV,33,LNG,150
+Passenger Cars Small Battery electric Euro 5,16,Battery electric,0
+Passenger Cars Small Petrol PRE ECE,55,Petrol,210
+Light Commercial Vehicles N1III CNG Bifuel Euro 5,16,CNG Bi-fuel,150
+Passenger Cars Medium Petrol Euro 6 a/b/c,11,Petrol,132
+Passenger Cars Medium Diesel Hybrid Euro 4,20,Diesel Hybrid,110
+Passenger Cars Medium Petrol Open Loop,35,Petrol,210
+Heavy Duty Trucks Articulated 34 40 t Diesel Euro I,33,Diesel,820
+Heavy Duty Trucks LNG Euro II,33,LNG,150
+Buses Battery electric Euro II,33,Battery electric,0
+Passenger Cars Medium Diesel Euro 6 a/b/c,11,Diesel,134
+Light Commercial Vehicles N1II Petrol Euro 7,0,Petrol,140
+Passenger Cars Medium CNG Bifuel Euro 6 a/b/c,11,CNG Bi-fuel,100
+"Heavy Duty Trucks >3,5 t Petrol Conventional",37,Petrol,150
+Passenger Cars Medium Petrol ECE 15/0001,46,Petrol,210
+Passenger Cars Mini CNG Bifuel Euro 7,0,CNG Bi-fuel,100
+Light Commercial Vehicles N1III CNG Bifuel Euro 6 d/e,5,CNG Bi-fuel,150
+Passenger Cars LargeSUVExecutive Fuel Cell Electric Vehicle Euro 6 dtemp,8,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Articulated 14 20 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1III Flexifuel Vehicle Euro 6 a/b/c,11,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1I Diesel Hybrid Euro 6 dtemp,8,Diesel Hybrid,110
+Heavy Duty Trucks Articulated 40 50 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1I Petrol Euro 6 a/b/c,11,Petrol,140
+Light Commercial Vehicles N1II CNG Bifuel Euro 7,0,CNG Bi-fuel,150
+Light Commercial Vehicles N1II LPG Bifuel Euro 5,16,LPG Bi-fuel,150
+Passenger Cars LargeSUVExecutive Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1II CNG Bifuel Euro 4,20,CNG Bi-fuel,150
+Buses Petrol Conventional,37,Petrol,150
+Light Commercial Vehicles N1I LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+Heavy Duty Trucks Battery electric Euro VI A/B/C,17,Battery electric,0
+Passenger Cars LargeSUVExecutive Fuel Cell Electric Vehicle Euro 6 a/b/c,11,Fuel Cell Electric Vehicle,0
+Passenger Cars LargeSUVExecutive Petrol PHEV Euro 6 dtemp,8,Petrol PHEV,42
+Buses Urban CNG Buses <=15 t CNG Euro VI D/E,17,CNG,820
+Buses Coaches Articulated >18 t Diesel Euro IV,33,Diesel,820
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro III",33,Diesel,820
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro V,17,Diesel,700
+Buses LPG Euro V,17,LPG,150
+Light Commercial Vehicles N1I LPG Bifuel Euro 2,28,LPG Bi-fuel,150
+Light Commercial Vehicles N1III Petrol Euro 4,20,Petrol,150
+Passenger Cars Mini LPG Bifuel Euro 7,0,LPG Bi-fuel,150
+Buses Urban Buses Midi <=15 t Diesel Euro VI A/B/C,17,Diesel,700
+Buses Coaches Articulated >18 t Diesel Euro VII,17,Diesel,700
+Light Commercial Vehicles N1I CNG Bifuel Euro 6 d/e,5,CNG Bi-fuel,150
+Passenger Cars Medium LPG Bifuel Euro 3,25,LPG Bi-fuel,150
+LCategory Motorcycles 2stroke >50 cm³ Petrol Euro 4,9,Petrol,62
+Heavy Duty Trucks Rigid >12 t CNG Euro VI D/E,17,CNG,820
+Passenger Cars Small Battery electric Euro 4,20,Battery electric,0
+Light Commercial Vehicles N1III Flexifuel Vehicle Euro 5,16,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Fuel Cell Electric Vehicle Conventional,37,Fuel Cell Electric Vehicle,0
+Buses Urban Biodiesel Buses Biodiesel Euro III,33,Biodiesel,820
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro I,33,Diesel,820
+Buses Coaches Standard <=18 t Diesel Euro V,17,Diesel,700
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro II",33,Diesel,820
+Passenger Cars Small Diesel PHEV Euro 6 dtemp,8,Diesel PHEV,42
+Light Commercial Vehicles N1II Petrol PHEV Euro 6 d/e,5,Petrol PHEV,42
+Buses Urban CNG Buses CNG Euro III,33,CNG,900
+Light Commercial Vehicles N1I CNG Bifuel Euro 4,20,CNG Bi-fuel,150
+Light Commercial Vehicles N1I Petrol Hybrid Euro 6 a/b/c,11,Petrol Hybrid,92
+Passenger Cars Small LPG Bifuel Euro 6 d/e,5,LPG Bi-fuel,150
+Passenger Cars Small LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+Light Commercial Vehicles N1II Petrol Euro 6 d/e,5,Petrol,140
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro V,17,Diesel,700
+Buses Coaches Articulated >18 t Diesel Euro V,17,Diesel,700
+Passenger Cars Small Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Passenger Cars Medium Flexifuel Vehicle Euro 6 dtemp,8,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro VI D/E,17,Diesel,700
+Light Commercial Vehicles N1III Fuel Cell Electric Vehicle Euro 4,20,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Rigid >12 t CNG Euro VI D/E,17,CNG,820
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro II,33,Diesel,820
+Heavy Duty Trucks Diesel PHEV Euro VI D/E,17,Diesel PHEV,42
+Light Commercial Vehicles N1II Diesel PHEV Euro 6 dtemp,8,Diesel PHEV,42
+Heavy Duty Trucks CNG Euro VI A/B/C,17,CNG,820
+Passenger Cars Medium LPG Bifuel Euro 5,16,LPG Bi-fuel,150
+Passenger Cars Small LPG Bifuel Conventional,45,LPG Bi-fuel,150
+Buses Fuel Cell Electric Vehicle Euro VI A/B/C,17,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro I,33,Diesel,820
+Passenger Cars LargeSUVExecutive Diesel Euro 6 a/b/c,11,Diesel,134
+Buses Urban Buses Diesel Hybrid Diesel Hybrid Euro VI A/B/C,17,Diesel Hybrid,110
+Buses Battery electric Euro VI A/B/C,17,Battery electric,0
+Light Commercial Vehicles N1III Battery electric Euro 5,16,Battery electric,0
+Buses Diesel Hybrid (NOVC) Euro VI D/E,17,Diesel Hybrid,110
+Passenger Cars Medium LPG Bifuel Euro 4,20,LPG Bi-fuel,150
+Light Commercial Vehicles N1II Petrol Hybrid Euro 6 a/b/c,11,Petrol Hybrid,92
+Passenger Cars Mini Diesel Euro 4,20,Diesel,146
+Passenger Cars Mini Petrol Euro 5,16,Petrol,145
+Passenger Cars Small Diesel Conventional,45,Diesel,170
+LCategory Motorcycles 4stroke <250 cm³ Petrol Euro 1,26,Petrol,150
+Passenger Cars Small Petrol ECE 15/02,44,Petrol,210
+Buses Urban Buses Standard 15 18 t Diesel Euro III,33,Diesel,820
+Passenger Cars Small Petrol PHEV Euro 6 d/e,5,Petrol PHEV,42
+Light Commercial Vehicles N1III LPG Bifuel Euro 7,0,LPG Bi-fuel,150
+LCategory Mopeds 4stroke <50 cm³ Petrol Euro 3,19,Petrol,64
+Light Commercial Vehicles N1I Diesel PHEV Euro 4,20,Diesel PHEV,42
+Passenger Cars Medium Diesel Euro 1,33,Diesel,164
+Buses Fuel Cell Electric Vehicle Euro I,33,Fuel Cell Electric Vehicle,0
+LCategory Motorcycles 4stroke >750 cm³ Petrol Euro 4,9,Petrol,120
+Passenger Cars Medium Petrol ECE 15/04,38,Petrol,210
+Light Commercial Vehicles N1II CNG Bifuel Euro 7,0,CNG Bi-fuel,150
+Light Commercial Vehicles N1I Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro VI A/B/C,17,Diesel,700
+Heavy Duty Trucks Battery electric Euro III,33,Battery electric,0
+Heavy Duty Trucks Diesel PHEV Euro I,33,Diesel PHEV,42
+Passenger Cars Small Petrol ECE 15/02,44,Petrol,210
+Passenger Cars Mini Petrol Euro 6 dtemp,8,Petrol,132
+Heavy Duty Trucks Battery electric Euro VI D/E,17,Battery electric,0
+Passenger Cars Medium CNG Bifuel Euro 6 d/e,5,CNG Bi-fuel,100
+Passenger Cars LargeSUVExecutive Diesel Hybrid Euro 6 d/e,5,Diesel Hybrid,110
+Passenger Cars LargeSUVExecutive Diesel PHEV Euro 6 a/b/c,11,Diesel PHEV,42
+Light Commercial Vehicles N1I LPG Bifuel Euro 7,0,LPG Bi-fuel,150
+Heavy Duty Trucks CNG Euro VI D/E,17,CNG,820
+Passenger Cars LargeSUVExecutive Flexifuel Vehicle Euro 6 a/b/c,11,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1III LPG Bifuel Euro 5,16,LPG Bi-fuel,150
+Buses CNG Euro VI D/E,17,CNG,820
+Light Commercial Vehicles N1I Diesel Hybrid Euro 6 a/b/c,11,Diesel Hybrid,110
+Heavy Duty Trucks Rigid 28 32 t Diesel Conventional,37,Diesel,850
+Passenger Cars Medium Diesel Euro 2,29,Diesel,158
+Light Commercial Vehicles N1II Petrol Euro 3,25,Petrol,160
+Passenger Cars Medium Diesel Hybrid Euro 6 a/b/c,11,Diesel Hybrid,110
+Light Commercial Vehicles N1II Diesel Hybrid Euro 6 dtemp,8,Diesel Hybrid,110
+Passenger Cars LargeSUVExecutive Battery electric Euro 6 dtemp,8,Battery electric,0
+Heavy Duty Trucks Articulated 14 20 t Diesel Euro II,33,Diesel,820
+Passenger Cars LargeSUVExecutive CNG Bifuel Euro 7,0,CNG Bi-fuel,100
+Light Commercial Vehicles N1I Fuel Cell Electric Vehicle Euro 5,16,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1I CNG Bifuel Euro 5,16,CNG Bi-fuel,150
+Passenger Cars Small LPG Bifuel Euro 7,0,LPG Bi-fuel,150
+Passenger Cars Mini Diesel Euro 7,0,Diesel,128
+Passenger Cars Medium Petrol ECE 15/03,40,Petrol,210
+LCategory Mopeds 2stroke <50 cm³ Petrol Euro 3,19,Petrol,64
+Buses Urban Buses Midi <=15 t Diesel Euro V,17,Diesel,700
+Passenger Cars Medium LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+Light Commercial Vehicles N1III Diesel Hybrid Euro 6 a/b/c,11,Diesel Hybrid,110
+LCategory Motorcycles 4stroke >750 cm³ Petrol Euro 3,19,Petrol,130
+Buses Fuel Cell Electric Vehicle Euro VI D/E,17,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1II CNG Bifuel Euro 6 d/e,5,CNG Bi-fuel,150
+Passenger Cars LargeSUVExecutive Diesel Euro 3,25,Diesel,152
+Heavy Duty Trucks CNG Euro IV,33,CNG,900
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro V,17,Fuel Cell Electric Vehicle,0
+Buses Urban CNG Buses 15 18 t CNG Euro VII,17,CNG,820
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 6 a/b/c,11,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1I Diesel Conventional,45,Diesel,170
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 7,0,LPG Bi-fuel,150
+LCategory Battery electric (Motorcycle) Euro 3,19,Battery electric (Motorcycle),0
+LCategory Microcar Diesel Euro 2,22,Diesel,150
+Light Commercial Vehicles N1III CNG Bifuel Conventional,45,CNG Bi-fuel,150
+Buses Urban Buses Midi <=15 t Diesel Euro IV,33,Diesel,820
+Light Commercial Vehicles N1II Petrol PHEV Euro 6 a/b/c,11,Petrol PHEV,42
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro I,33,Diesel,820
+LCategory Battery electric (Moped) Euro 1,26,Battery electric (Moped),0
+LCategory Quad & ATVs Petrol Euro 2,22,Petrol,140
+Light Commercial Vehicles N1II Petrol PHEV Euro 7,0,Petrol PHEV,42
+Heavy Duty Trucks Battery electric Euro II,33,Battery electric,0
+Light Commercial Vehicles N1III Diesel Euro 6 dtemp,8,Diesel,140
+Light Commercial Vehicles N1III Petrol PHEV Euro 4,20,Petrol PHEV,42
+Light Commercial Vehicles N1I Battery electric Euro 5,16,Battery electric,0
+Passenger Cars LargeSUVExecutive Petrol Hybrid Euro 5,16,Petrol Hybrid,92
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro I,33,Diesel,820
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro I,33,Diesel,820
+Passenger Cars LargeSUVExecutive Diesel Euro 6 dtemp,8,Diesel,134
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+Passenger Cars Small Diesel PHEV Euro 6 a/b/c,11,Diesel PHEV,42
+Light Commercial Vehicles N1I LPG Bifuel Euro 6 a/b/c,11,LPG Bi-fuel,150
+Passenger Cars Medium Diesel Euro 6 dtemp,8,Diesel,134
+Passenger Cars Mini LPG Bifuel Euro 6 a/b/c,11,LPG Bi-fuel,150
+Light Commercial Vehicles N1I Diesel Euro 4,20,Diesel,150
+Passenger Cars LargeSUVExecutive Diesel Euro 6 d/e,5,Diesel,134
+Heavy Duty Trucks LPG Euro V,17,LPG,150
+Light Commercial Vehicles N1I Diesel PHEV Euro 6 d/e,5,Diesel PHEV,42
+Passenger Cars Mini Petrol Euro 6 a/b/c,11,Petrol,132
+Passenger Cars LargeSUVExecutive Flexifuel Vehicle Euro 7,0,Flexi-fuel Vehicle,150
+Passenger Cars LargeSUVExecutive Diesel PHEV Euro 6 d/e,5,Diesel PHEV,42
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro VII,17,Diesel,700
+Passenger Cars LargeSUVExecutive Battery electric Euro 6 a/b/c,11,Battery electric,0
+Buses Coaches Standard <=18 t Diesel Conventional,37,Diesel,850
+Heavy Duty Trucks Articulated 14 20 t Diesel Euro V,17,Diesel,700
+Passenger Cars LargeSUVExecutive Petrol PRE ECE,55,Petrol,210
+Light Commercial Vehicles N1III Flexifuel Vehicle Euro 7,0,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1III Diesel PHEV Euro 7,0,Diesel PHEV,42
+Passenger Cars Small Petrol Hybrid Euro 6 d/e,5,Petrol Hybrid,92
+LCategory Motorcycles 2stroke >50 cm³ Petrol Euro 1,26,Petrol,68
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro VII,17,Diesel,700
+Light Commercial Vehicles N1III LPG Bifuel Conventional,45,LPG Bi-fuel,150
+LCategory Motorcycles 4stroke 250 750 cm³ Petrol Conventional,35,Petrol,160
+Light Commercial Vehicles N1III CNG Bifuel Euro 2,28,CNG Bi-fuel,150
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro VII,17,Diesel,700
+Passenger Cars LargeSUVExecutive Diesel Euro 5,16,Diesel,140
+Passenger Cars LargeSUVExecutive Petrol PHEV Euro 6 d/e,5,Petrol PHEV,42
+Light Commercial Vehicles N1I Diesel Euro 3,25,Diesel,155
+Passenger Cars Mini Battery electric Euro 6 dtemp,8,Battery electric,0
+Buses Coaches Standard <=18 t Diesel Euro VII,17,Diesel,700
+Passenger Cars Medium Diesel PHEV Euro 6 d/e,5,Diesel PHEV,42
+Light Commercial Vehicles N1I Petrol PHEV Euro 6 d/e,5,Petrol PHEV,42
+Passenger Cars Small CNG Bifuel Euro 7,0,CNG Bi-fuel,100
+Passenger Cars Medium Fuel Cell Electric Vehicle Euro 6 a/b/c,11,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1III Diesel Conventional,45,Diesel,170
+Light Commercial Vehicles N1II Diesel Hybrid Euro 6 d/e,5,Diesel Hybrid,110
+Passenger Cars Medium Diesel Euro 6 d/e,5,Diesel,134
+Heavy Duty Trucks Articulated 34 40 t Diesel Euro VI A/B/C,17,Diesel,700
+Passenger Cars Medium Diesel PHEV Euro 6 a/b/c,11,Diesel PHEV,42
+Buses Urban Buses Midi <=15 t Diesel Euro I,33,Diesel,820
+LCategory Motorcycles 4stroke <250 cm³ Petrol Euro 5,5,Petrol,110
+LCategory Quad & ATVs Petrol Euro 3,19,Petrol,130
+Passenger Cars Small CNG Bifuel Euro 6 d/e,5,CNG Bi-fuel,100
+Passenger Cars Small LPG Bifuel Euro 1,33,LPG Bi-fuel,150
+Light Commercial Vehicles N1II LPG Bifuel Euro 6 a/b/c,11,LPG Bi-fuel,150
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro II",33,Diesel,820
+Light Commercial Vehicles N1I Flexifuel Vehicle Euro 6 a/b/c,11,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Articulated 34 40 t Diesel Euro IV,33,Diesel,820
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro V,17,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1I Diesel Hybrid Euro 6 d/e,5,Diesel Hybrid,110
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+Buses Coaches Articulated >18 t Diesel Euro II,33,Diesel,820
+Light Commercial Vehicles N1III Diesel Euro 3,25,Diesel,155
+Light Commercial Vehicles N1I Fuel Cell Electric Vehicle Euro 6 a/b/c,11,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1II Battery electric Euro 6 a/b/c,11,Battery electric,0
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Conventional",37,Diesel,850
+LCategory Motorcycles 4stroke <250 cm³ Petrol Euro 4,9,Petrol,120
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 6 dtemp,8,Fuel Cell Electric Vehicle,0
+Passenger Cars Small Petrol Euro 2,29,Petrol,184
+Light Commercial Vehicles N1I Fuel Cell Electric Vehicle Euro 5,16,Fuel Cell Electric Vehicle,0
+LCategory Motorcycles 4stroke 250 750 cm³ Petrol Euro 1,26,Petrol,150
+Passenger Cars Mini Battery electric Euro 6 a/b/c,11,Battery electric,0
+Light Commercial Vehicles N1II CNG Bifuel Euro 1,32,CNG Bi-fuel,150
+Passenger Cars Small Petrol Euro 7,0,Petrol,119
+Light Commercial Vehicles N1I Petrol Conventional,45,Petrol,190
+Light Commercial Vehicles N1II LPG Bifuel Euro 3,25,LPG Bi-fuel,150
+Passenger Cars Small Petrol Euro 6 dtemp,8,Petrol,132
+Passenger Cars Mini Diesel Euro 6 dtemp,8,Diesel,134
+Light Commercial Vehicles N1II Flexifuel Vehicle Euro 5,16,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Articulated 34 40 t Diesel Euro III,33,Diesel,820
+Passenger Cars Medium Petrol PHEV Euro 6 d/e,5,Petrol PHEV,42
+Light Commercial Vehicles N1III Petrol Euro 6 a/b/c,11,Petrol,140
+Passenger Cars Mini LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+Passenger Cars Small Petrol PHEV Euro 6 dtemp,8,Petrol PHEV,42
+Passenger Cars Medium LPG Bifuel Euro 6 a/b/c,11,LPG Bi-fuel,150
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 4,20,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Rigid >32 t Diesel Euro V,17,Diesel,700
+Passenger Cars LargeSUVExecutive Fuel Cell Electric Vehicle Euro 7,0,Fuel Cell Electric Vehicle,0
+Buses Urban Buses Midi <=15 t Diesel Euro VII,17,Diesel,700
+Light Commercial Vehicles N1II LPG Bifuel Euro 1,32,LPG Bi-fuel,150
+Heavy Duty Trucks Diesel Hybrid Euro VI D/E,17,Diesel Hybrid,110
+Heavy Duty Trucks Diesel PHEV Euro VI A/B/C,17,Diesel PHEV,42
+LCategory Microcar Diesel Euro 3,19,Diesel,150
+Heavy Duty Trucks Articulated 34 40 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 4,20,Fuel Cell Electric Vehicle,0
+Passenger Cars LargeSUVExecutive Diesel PHEV Euro 7,0,Diesel PHEV,42
+Light Commercial Vehicles N1III Petrol Euro 6 dtemp,8,Petrol,140
+Light Commercial Vehicles N1III CNG Bifuel Euro 4,20,CNG Bi-fuel,150
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro VI A/B/C,17,Diesel,700
+Passenger Cars Medium Battery electric Euro 6 d/e,5,Battery electric,0
+Light Commercial Vehicles N1I Petrol Euro 6 dtemp,8,Petrol,140
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro I,33,Diesel,820
+Passenger Cars Medium LPG Bifuel Euro 1,33,LPG Bi-fuel,150
+Light Commercial Vehicles N1III Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro IV,33,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Diesel Hybrid Euro VII,17,Diesel Hybrid,110
+Buses LPG Euro II,33,LPG,150
+Passenger Cars Small Diesel Hybrid Euro 4,20,Diesel Hybrid,110
+Passenger Cars LargeSUVExecutive CNG Bifuel Euro 5,16,CNG Bi-fuel,100
+Buses Petrol Euro V,17,Petrol,150
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro VI A/B/C,17,Diesel,700
+Buses Urban Buses Standard 15 18 t Diesel Euro V,17,Diesel,700
+Passenger Cars Mini CNG Bifuel Euro 6 dtemp,8,CNG Bi-fuel,100
+Passenger Cars Medium CNG Bifuel Euro 6 dtemp,8,CNG Bi-fuel,100
+Passenger Cars Small Petrol PHEV Euro 6 a/b/c,11,Petrol PHEV,42
+LCategory Quad & ATVs Petrol Euro 1,26,Petrol,150
+Light Commercial Vehicles N1II Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Buses Urban Buses Articulated >18 t Diesel Euro V,17,Diesel,700
+Light Commercial Vehicles N1I Flexifuel Vehicle Euro 6 d/e,5,Flexi-fuel Vehicle,150
+Passenger Cars Small LPG Bifuel Euro 2,29,LPG Bi-fuel,150
+Light Commercial Vehicles N1II LPG Bifuel Euro 2,28,LPG Bi-fuel,150
+Light Commercial Vehicles N1I Battery electric Euro 6 d/e,5,Battery electric,0
+Heavy Duty Trucks LPG Euro I,33,LPG,150
+Passenger Cars Medium Petrol Hybrid Euro 6 dtemp,8,Petrol Hybrid,92
+Light Commercial Vehicles N1II CNG Bifuel Euro 5,16,CNG Bi-fuel,150
+Heavy Duty Trucks Rigid >32 t Diesel Euro I,33,Diesel,820
+Light Commercial Vehicles N1II Petrol PHEV Euro 6 dtemp,8,Petrol PHEV,42
+LCategory Motorcycles 2stroke >50 cm³ Petrol Conventional,35,Petrol,70
+Heavy Duty Trucks Articulated < 40 t LNG Euro VI D/E,17,LNG,150
+Passenger Cars Small Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Buses Diesel Hybrid (NOVC) Conventional,37,Diesel Hybrid,110
+Passenger Cars Small Diesel Euro 6 dtemp,8,Diesel,134
+Heavy Duty Trucks LNG Conventional,37,LNG,150
+Passenger Cars Mini Petrol Hybrid Euro 7,0,Petrol Hybrid,92
+Heavy Duty Trucks Diesel Hybrid Conventional,37,Diesel Hybrid,110
+Passenger Cars LargeSUVExecutive Flexifuel Vehicle Euro 3,25,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1II Petrol PHEV Euro 4,20,Petrol PHEV,42
+Light Commercial Vehicles N1III Petrol Euro 4,20,Petrol,150
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro V",17,Diesel,700
+Passenger Cars Small Petrol Euro 5,16,Petrol,145
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 6 d/e,5,LPG Bi-fuel,150
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro I,33,Diesel,820
+Light Commercial Vehicles N1III Diesel Hybrid Euro 7,0,Diesel Hybrid,110
+Passenger Cars Medium Petrol Hybrid Euro 6 a/b/c,11,Petrol Hybrid,92
+Light Commercial Vehicles N1III CNG Bifuel Euro 2,28,CNG Bi-fuel,150
+Light Commercial Vehicles N1III Petrol PHEV Euro 4,20,Petrol PHEV,42
+Light Commercial Vehicles N1I Battery electric Euro 4,20,Battery electric,0
+Passenger Cars Small CNG Bifuel Euro 6 dtemp,8,CNG Bi-fuel,100
+Passenger Cars Mini Petrol Euro 4,20,Petrol,158
+Light Commercial Vehicles N1I Petrol Euro 7,0,Petrol,140
+Light Commercial Vehicles N1II CNG Bifuel Conventional,45,CNG Bi-fuel,150
+Heavy Duty Trucks LNG Euro VII,17,LNG,150
+Passenger Cars Mini CNG Bifuel Euro 4,20,CNG Bi-fuel,110
+Passenger Cars Medium Flexifuel Vehicle Euro 3,25,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1I Petrol PHEV Euro 4,20,Petrol PHEV,42
+Passenger Cars LargeSUVExecutive Diesel Conventional,45,Diesel,170
+Passenger Cars Small Battery electric Euro 6 a/b/c,11,Battery electric,0
+Passenger Cars Medium Petrol Euro 5,16,Petrol,145
+LCategory Mopeds 4stroke <50 cm³ Petrol Euro 4,9,Petrol,62
+Light Commercial Vehicles N1II Petrol Hybrid Euro 7,0,Petrol Hybrid,92
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro VII,17,Diesel,700
+Light Commercial Vehicles N1III Diesel PHEV Euro 5,16,Diesel PHEV,42
+Passenger Cars Mini Petrol Euro 6 d/e,5,Petrol,132
+Light Commercial Vehicles N1II Petrol Euro 6 dtemp,8,Petrol,140
+Light Commercial Vehicles N1I Petrol PHEV Euro 6 a/b/c,11,Petrol PHEV,42
+Buses Battery electric Euro I,33,Battery electric,0
+Light Commercial Vehicles N1I Diesel Hybrid Euro 7,0,Diesel Hybrid,110
+Passenger Cars Medium Flexifuel Vehicle Euro 7,0,Flexi-fuel Vehicle,150
+LCategory Mopeds 2stroke <50 cm³ Petrol Euro 5,5,Petrol,60
+Light Commercial Vehicles N1II CNG Bifuel Euro 6 dtemp,8,CNG Bi-fuel,150
+Light Commercial Vehicles N1II Battery electric Euro 5,16,Battery electric,0
+Passenger Cars LargeSUVExecutive Petrol Euro 1,33,Petrol,197
+Light Commercial Vehicles N1II Flexifuel Vehicle Euro 6 d/e,5,Flexi-fuel Vehicle,150
+Passenger Cars LargeSUVExecutive Diesel Hybrid Euro 4,20,Diesel Hybrid,110
+Light Commercial Vehicles N1I Petrol Euro 6 d/e,5,Petrol,140
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro VI D/E,17,Diesel,700
+LCategory Motorcycles 2stroke >50 cm³ Petrol Euro 2,22,Petrol,66
+Passenger Cars Mini Petrol Euro 6 d/e,5,Petrol,132
+Passenger Cars Medium LPG Bifuel Euro 3,25,LPG Bi-fuel,150
+Heavy Duty Trucks Rigid 20 26 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1III CNG Bifuel Euro 6 a/b/c,11,CNG Bi-fuel,150
+Heavy Duty Trucks Rigid >32 t Diesel Euro III,33,Diesel,820
+Light Commercial Vehicles N1II Diesel Euro 7,0,Diesel,135
+Buses Urban Buses Articulated >18 t Diesel Euro VII,17,Diesel,700
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro II,33,Diesel,820
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro III,33,Diesel,820
+Passenger Cars Mini Diesel Euro 6 a/b/c,11,Diesel,134
+Heavy Duty Trucks Articulated 34 40 t Diesel Euro II,33,Diesel,820
+LCategory Battery electric (Microcar) Euro 2,22,Battery electric (Micro-car),0
+LCategory Motorcycles 4stroke >750 cm³ Petrol Euro 1,26,Petrol,150
+Passenger Cars Medium Diesel Euro 7,0,Diesel,128
+Light Commercial Vehicles N1I Diesel Euro 3,25,Diesel,155
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro III",33,Diesel,820
+Light Commercial Vehicles N1II Petrol Euro 6 a/b/c,11,Petrol,140
+Buses Urban CNG Buses >18 t CNG Euro VII,17,CNG,820
+Light Commercial Vehicles N1I Diesel Euro 2,28,Diesel,160
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro III,33,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro V,17,Diesel,700
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro IV,33,Diesel,820
+Passenger Cars LargeSUVExecutive Diesel Euro 6 dtemp,8,Diesel,134
+Passenger Cars Medium Battery electric Euro 6 a/b/c,11,Battery electric,0
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro VII",17,Diesel,700
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro I,33,Diesel,820
+Heavy Duty Trucks Diesel Hybrid Euro IV,33,Diesel Hybrid,110
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro I,33,Diesel,820
+Passenger Cars Medium CNG Bifuel Euro 7,0,CNG Bi-fuel,100
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro V,17,Diesel,700
+Light Commercial Vehicles N1II CNG Bifuel Euro 3,25,CNG Bi-fuel,150
+Light Commercial Vehicles N1I Diesel Euro 5,16,Diesel,145
+Passenger Cars Medium Petrol Hybrid Euro 5,16,Petrol Hybrid,92
+Buses Urban Biodiesel Buses Biodiesel Euro IV,33,Biodiesel,820
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro VII",17,Diesel,700
+Passenger Cars Medium Fuel Cell Electric Vehicle Euro 5,16,Fuel Cell Electric Vehicle,0
+Passenger Cars LargeSUVExecutive Diesel Hybrid Euro 6 dtemp,8,Diesel Hybrid,110
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro VI A/B/C",17,Diesel,700
+Light Commercial Vehicles N1III Diesel Hybrid Euro 6 a/b/c,11,Diesel Hybrid,110
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro VII,17,Diesel,700
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro IV,33,Diesel,820
+Heavy Duty Trucks Diesel PHEV Euro III,33,Diesel PHEV,42
+Light Commercial Vehicles N1II Diesel Conventional,45,Diesel,170
+Passenger Cars Small Petrol Open Loop,35,Petrol,210
+Heavy Duty Trucks Articulated 34 40 t Diesel Euro VI D/E,17,Diesel,700
+Heavy Duty Trucks Rigid >32 t Diesel Euro VI D/E,17,Diesel,700
+Light Commercial Vehicles N1I Petrol PHEV Euro 6 a/b/c,11,Petrol PHEV,42
+Heavy Duty Trucks LPG Euro VI D/E,17,LPG,150
+Heavy Duty Trucks LPG Euro II,33,LPG,150
+Light Commercial Vehicles N1III LPG Bifuel Euro 6 a/b/c,11,LPG Bi-fuel,150
+Heavy Duty Trucks Rigid 12 14 t Diesel Conventional,37,Diesel,850
+Passenger Cars Mini Petrol Hybrid Euro 6 d/e,5,Petrol Hybrid,92
+Buses Coaches Standard <=18 t Diesel Euro II,33,Diesel,820
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro II,33,Diesel,820
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro IV",33,Diesel,820
+Passenger Cars Small Diesel Hybrid Euro 5,16,Diesel Hybrid,110
+Buses Urban Buses Articulated >18 t Diesel Euro II,33,Diesel,820
+Light Commercial Vehicles N1III Diesel Euro 6 d/e,5,Diesel,140
+Passenger Cars Small Flexifuel Vehicle Euro 5,16,Flexi-fuel Vehicle,150
+Heavy Duty Trucks LNG Euro I,33,LNG,150
+Passenger Cars Small Diesel Hybrid Euro 6 d/e,5,Diesel Hybrid,110
+Heavy Duty Trucks Rigid 26 28 t Diesel Conventional,37,Diesel,850
+"Heavy Duty Trucks Rigid <=7,5 t CNG Euro VII",17,CNG,820
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro V,17,Diesel,700
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro IV,33,Diesel,820
+Light Commercial Vehicles N1II Petrol Euro 2,28,Petrol,170
+Passenger Cars Mini Petrol Hybrid Euro 5,16,Petrol Hybrid,92
+Passenger Cars Small Diesel Euro 3,25,Diesel,152
+Light Commercial Vehicles N1III Petrol Euro 7,0,Petrol,140
+Light Commercial Vehicles N1III Petrol PHEV Euro 6 dtemp,8,Petrol PHEV,42
+Heavy Duty Trucks Diesel Hybrid Euro II,33,Diesel Hybrid,110
+Light Commercial Vehicles N1III Petrol Euro 5,16,Petrol,140
+Light Commercial Vehicles N1III Petrol PHEV Euro 6 d/e,5,Petrol PHEV,42
+Light Commercial Vehicles N1II Diesel Euro 2,28,Diesel,160
+Heavy Duty Trucks Diesel PHEV Euro V,17,Diesel PHEV,42
+Passenger Cars Small Petrol Hybrid Euro 6 dtemp,8,Petrol Hybrid,92
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro I,33,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro VI D/E,17,Diesel,700
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro VII",17,Diesel,700
+LCategory Motorcycles 4stroke 250 750 cm³ Petrol Euro 4,9,Petrol,120
+Heavy Duty Trucks CNG Euro V,17,CNG,820
+Buses Urban Biodiesel Buses Biodiesel Euro VI A/B/C,17,Biodiesel,700
+Buses LPG Conventional,37,LPG,150
+Buses Urban Buses Articulated >18 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1III Petrol Hybrid Euro 4,20,Petrol Hybrid,92
+Light Commercial Vehicles N1I Diesel Hybrid Euro 4,20,Diesel Hybrid,110
+Passenger Cars Small Diesel Hybrid Euro 7,0,Diesel Hybrid,110
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro III,33,Diesel,820
+"Heavy Duty Trucks Rigid 7,5 12 t CNG Euro VI D/E",17,CNG,820
+Passenger Cars Medium Petrol Hybrid Euro 7,0,Petrol Hybrid,92
+Light Commercial Vehicles N1III Diesel Euro 5,16,Diesel,145
+LCategory Mopeds 2stroke <50 cm³ Petrol Conventional,35,Petrol,70
+Heavy Duty Trucks LPG Euro VI A/B/C,17,LPG,150
+Passenger Cars Medium Petrol Euro 6 d/e,5,Petrol,132
+Passenger Cars Small Battery electric Euro 6 dtemp,8,Battery electric,0
+Light Commercial Vehicles N1I Petrol Hybrid Euro 4,20,Petrol Hybrid,92
+Light Commercial Vehicles N1I CNG Bifuel Euro 6 dtemp,8,CNG Bi-fuel,150
+Passenger Cars LargeSUVExecutive Diesel PHEV Euro 6 d/e,5,Diesel PHEV,42
+Passenger Cars Small Petrol ECE 15/03,40,Petrol,210
+Passenger Cars Small CNG Bifuel Euro 6 a/b/c,11,CNG Bi-fuel,100
+Passenger Cars LargeSUVExecutive Fuel Cell Electric Vehicle Euro 5,16,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1II Petrol Hybrid Euro 6 d/e,5,Petrol Hybrid,92
+Buses Urban Buses Articulated >18 t Diesel Euro I,33,Diesel,820
+Buses Urban Buses Midi <=15 t Diesel Euro I,33,Diesel,820
+Heavy Duty Trucks LNG Euro VI D/E,17,LNG,150
+Light Commercial Vehicles N1III Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Passenger Cars Medium Petrol Hybrid Euro 6 d/e,5,Petrol Hybrid,92
+Heavy Duty Trucks LNG Euro VI A/B/C,17,LNG,150
+LCategory Battery electric (Motorcycle) Euro 5,5,Battery electric (Motorcycle),0
+Light Commercial Vehicles N1III Petrol Euro 2,28,Petrol,170
+Passenger Cars Small LPG Bifuel Euro 4,20,LPG Bi-fuel,150
+Light Commercial Vehicles N1I Petrol Euro 5,16,Petrol,140
+Passenger Cars Small Petrol Hybrid Euro 5,16,Petrol Hybrid,92
+Light Commercial Vehicles N1I LPG Bifuel Conventional,45,LPG Bi-fuel,150
+Light Commercial Vehicles N1I Petrol Hybrid Euro 6 dtemp,8,Petrol Hybrid,92
+Light Commercial Vehicles N1II LPG Bifuel Euro 4,20,LPG Bi-fuel,150
+Light Commercial Vehicles N1II Diesel Hybrid Euro 4,20,Diesel Hybrid,110
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 7,0,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Articulated 14 20 t Diesel Euro III,33,Diesel,820
+LCategory Motorcycles 4stroke 250 750 cm³ Petrol Euro 3,19,Petrol,130
+Heavy Duty Trucks Diesel PHEV Conventional,37,Diesel PHEV,42
+Buses Urban Buses Standard 15 18 t Diesel Euro I,33,Diesel,820
+Buses Urban Buses Articulated >18 t Diesel Conventional,37,Diesel,850
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro V,17,Diesel,700
+Light Commercial Vehicles N1I Diesel Euro 6 d/e,5,Diesel,140
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro I,33,Diesel,820
+Light Commercial Vehicles N1II Petrol Euro 4,20,Petrol,150
+Buses Fuel Cell Electric Vehicle Euro IV,33,Fuel Cell Electric Vehicle,0
+Buses Urban Biodiesel Buses Biodiesel Euro I,33,Biodiesel,820
+Passenger Cars LargeSUVExecutive Diesel Euro 4,20,Diesel,146
+Light Commercial Vehicles N1I LPG Bifuel Euro 6 d/e,5,LPG Bi-fuel,150
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro VI D/E,17,Diesel,700
+Passenger Cars Small Petrol Euro 6 a/b/c,11,Petrol,132
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+Passenger Cars Medium Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Passenger Cars LargeSUVExecutive Petrol Euro 3,25,Petrol,171
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro V,17,Diesel,700
+Passenger Cars LargeSUVExecutive Battery electric Euro 5,16,Battery electric,0
+Heavy Duty Trucks Battery electric Euro IV,33,Battery electric,0
+Passenger Cars LargeSUVExecutive Petrol ECE 15/02,44,Petrol,210
+Light Commercial Vehicles N1III Petrol PHEV Euro 7,0,Petrol PHEV,42
+Buses Battery electric Euro III,33,Battery electric,0
+Heavy Duty Trucks Battery electric Conventional,37,Battery electric,0
+Passenger Cars LargeSUVExecutive Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Buses Diesel Hybrid (NOVC) Euro IV,33,Diesel Hybrid,110
+Passenger Cars Medium Diesel Euro 4,20,Diesel,146
+Passenger Cars Medium CNG Bifuel Euro 7,0,CNG Bi-fuel,100
+Light Commercial Vehicles N1I Petrol Hybrid Euro 7,0,Petrol Hybrid,92
+Light Commercial Vehicles N1I CNG Bifuel Euro 3,25,CNG Bi-fuel,150
+Buses Urban Buses Articulated >18 t Diesel Euro IV,33,Diesel,820
+Light Commercial Vehicles N1III Petrol PHEV Euro 6 a/b/c,11,Petrol PHEV,42
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro IV,33,Diesel,820
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro III,33,Diesel,820
+Heavy Duty Trucks Articulated 50 60 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1III LPG Bifuel Euro 3,25,LPG Bi-fuel,150
+Passenger Cars LargeSUVExecutive Diesel Hybrid Euro 6 a/b/c,11,Diesel Hybrid,110
+Passenger Cars LargeSUVExecutive Diesel Hybrid Euro 7,0,Diesel Hybrid,110
+Passenger Cars Medium Diesel Hybrid Euro 6 d/e,5,Diesel Hybrid,110
+Passenger Cars Small CNG Bifuel Euro 5,16,CNG Bi-fuel,100
+Passenger Cars Medium Petrol PHEV Euro 6 a/b/c,11,Petrol PHEV,42
+Heavy Duty Trucks Rigid >32 t Diesel Euro IV,33,Diesel,820
+Passenger Cars LargeSUVExecutive Petrol ECE 15/04,38,Petrol,210
+Buses Urban Biodiesel Buses Biodiesel Euro VI D/E,17,Biodiesel,700
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro VI D/E",17,Diesel,700
+Passenger Cars LargeSUVExecutive Battery electric Euro 7,0,Battery electric,0
+Passenger Cars Medium LPG Bifuel Euro 6 d/e,5,LPG Bi-fuel,150
+Heavy Duty Trucks Articulated 14 20 t Diesel Conventional,37,Diesel,850
+Light Commercial Vehicles N1III Battery electric Euro 4,20,Battery electric,0
+Heavy Duty Trucks Articulated 14 20 t Diesel Euro IV,33,Diesel,820
+LCategory Mopeds 4stroke <50 cm³ Petrol Euro 2,22,Petrol,66
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro II,33,Diesel,820
+Heavy Duty Trucks Diesel Hybrid Euro III,33,Diesel Hybrid,110
+Heavy Duty Trucks CNG Euro II,33,CNG,900
+Light Commercial Vehicles N1II Flexifuel Vehicle Euro 6 dtemp,8,Flexi-fuel Vehicle,150
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro V",17,Diesel,700
+Passenger Cars LargeSUVExecutive Diesel Euro 1,33,Diesel,164
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro VI A/B/C,17,Diesel,700
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 3,25,LPG Bi-fuel,150
+Light Commercial Vehicles N1I Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1I Diesel Euro 1,32,Diesel,165
+Buses Fuel Cell Electric Vehicle Conventional,37,Fuel Cell Electric Vehicle,0
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 1,33,LPG Bi-fuel,150
+Heavy Duty Trucks Battery electric Euro I,33,Battery electric,0
+Light Commercial Vehicles N1III Fuel Cell Electric Vehicle Euro 6 a/b/c,11,Fuel Cell Electric Vehicle,0
+Buses Petrol Euro III,33,Petrol,150
+Light Commercial Vehicles N1III Diesel PHEV Euro 6 dtemp,8,Diesel PHEV,42
+Buses Urban Buses Standard 15 18 t Diesel Euro VI A/B/C,17,Diesel,700
+Light Commercial Vehicles N1II Diesel Euro 5,16,Diesel,145
+Passenger Cars LargeSUVExecutive Fuel Cell Electric Vehicle Euro 4,20,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1III CNG Bifuel Euro 7,0,CNG Bi-fuel,150
+Buses Urban Buses Midi <=15 t Diesel Euro II,33,Diesel,820
+Passenger Cars Small LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+Light Commercial Vehicles N1II Petrol Hybrid Euro 6 dtemp,8,Petrol Hybrid,92
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro VI A/B/C,17,Diesel,700
+Buses Coaches Articulated >18 t Diesel Conventional,37,Diesel,850
+Passenger Cars Mini Petrol Euro 6 d/e,5,Petrol,132
+Passenger Cars Medium Fuel Cell Electric Vehicle Euro 4,20,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks LNG Euro III,33,LNG,150
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro IV,33,Diesel,820
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro IV,33,Diesel,820
+Passenger Cars Medium Petrol Euro 4,20,Petrol,158
+Heavy Duty Trucks Diesel Hybrid Euro III,33,Diesel Hybrid,110
+Light Commercial Vehicles N1I Petrol Euro 2,28,Petrol,170
+Light Commercial Vehicles N1II Petrol PHEV Euro 5,16,Petrol PHEV,42
+Light Commercial Vehicles N1III Fuel Cell Electric Vehicle Euro 6 dtemp,8,Fuel Cell Electric Vehicle,0
+LCategory Battery electric (Motorcycle) Euro 2,22,Battery electric (Motorcycle),0
+Passenger Cars Small Diesel Hybrid Euro 6 dtemp,8,Diesel Hybrid,110
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro VI A/B/C,17,Fuel Cell Electric Vehicle,0
+Buses Petrol Euro II,33,Petrol,150
+Buses Fuel Cell Electric Vehicle Euro I,33,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1II Flexifuel Vehicle Euro 4,20,Flexi-fuel Vehicle,150
+Passenger Cars Small Diesel Euro 7,0,Diesel,128
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro VII,17,Diesel,700
+Passenger Cars LargeSUVExecutive Battery electric Euro 6 dtemp,8,Battery electric,0
+Light Commercial Vehicles N1II Petrol Euro 5,16,Petrol,140
+Passenger Cars Small Diesel PHEV Euro 7,0,Diesel PHEV,42
+Buses Urban Buses Articulated >18 t Diesel Euro VI A/B/C,17,Diesel,700
+Light Commercial Vehicles N1II Diesel Euro 3,25,Diesel,155
+Heavy Duty Trucks LPG Euro IV,33,LPG,150
+Passenger Cars LargeSUVExecutive Battery electric Euro 4,20,Battery electric,0
+Passenger Cars LargeSUVExecutive Petrol Euro 6 d/e,5,Petrol,132
+Buses Urban Buses Midi <=15 t Diesel Euro III,33,Diesel,820
+Passenger Cars LargeSUVExecutive LPG Bifuel Conventional,45,LPG Bi-fuel,150
+Buses Coaches Articulated >18 t Diesel Euro VI D/E,17,Diesel,700
+Buses Coaches Articulated >18 t Diesel Euro III,33,Diesel,820
+Buses Coaches Articulated >18 t Diesel Euro I,33,Diesel,820
+Passenger Cars Medium Petrol PHEV Euro 7,0,Petrol PHEV,42
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro VI D/E,17,Diesel,700
+Light Commercial Vehicles N1I Flexifuel Vehicle Euro 6 d/e,5,Flexi-fuel Vehicle,150
+Heavy Duty Trucks Articulated 34 40 t Diesel Euro V,17,Diesel,700
+Heavy Duty Trucks Articulated < 40 t CNG Euro VI D/E,17,CNG,820
+LCategory Battery electric (Microcar) Euro 4,9,Battery electric (Micro-car),0
+Passenger Cars Small LPG Bifuel Euro 6 a/b/c,11,LPG Bi-fuel,150
+Light Commercial Vehicles N1II Flexifuel Vehicle Euro 6 a/b/c,11,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1III Fuel Cell Electric Vehicle Euro 7,0,Fuel Cell Electric Vehicle,0
+Buses Urban Buses Articulated >18 t Diesel Euro III,33,Diesel,820
+Heavy Duty Trucks Battery electric Euro VII,17,Battery electric,0
+Buses Petrol Euro I,33,Petrol,150
+Passenger Cars LargeSUVExecutive Diesel Euro 4,20,Diesel,146
+Passenger Cars LargeSUVExecutive Diesel PHEV Euro 6 dtemp,8,Diesel PHEV,42
+Passenger Cars LargeSUVExecutive Petrol Euro 6 dtemp,8,Petrol,132
+Buses Diesel Hybrid (NOVC) Euro VII,17,Diesel Hybrid,110
+Light Commercial Vehicles N1I Petrol Euro 5,16,Petrol,140
+Light Commercial Vehicles N1II LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+"Heavy Duty Trucks Rigid 7,5 12 t CNG Euro VII",17,CNG,820
+Passenger Cars Mini LPG Bifuel Euro 4,20,LPG Bi-fuel,150
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Articulated 20 28 t Diesel Euro VII,17,Diesel,700
+Passenger Cars LargeSUVExecutive CNG Bifuel Euro 4,20,CNG Bi-fuel,110
+LCategory Battery electric (Moped) Euro 4,9,Battery electric (Moped),0
+Passenger Cars Medium Battery electric Euro 5,16,Battery electric,0
+Passenger Cars Medium Battery electric Euro 6 dtemp,8,Battery electric,0
+Heavy Duty Trucks Articulated 14 20 t Diesel Euro VI D/E,17,Diesel,700
+Passenger Cars Small Diesel Euro 1,33,Diesel,164
+Buses Urban CNG Buses CNG EEV,26,CNG,920
+Light Commercial Vehicles N1III Diesel Hybrid Euro 6 d/e,5,Diesel Hybrid,110
+Heavy Duty Trucks CNG Conventional,37,CNG,920
+Light Commercial Vehicles N1I Flexifuel Vehicle Euro 5,16,Flexi-fuel Vehicle,150
+LCategory Mopeds 2stroke <50 cm³ Petrol Euro 2,22,Petrol,66
+Passenger Cars LargeSUVExecutive CNG Bifuel Euro 6 d/e,5,CNG Bi-fuel,100
+Passenger Cars LargeSUVExecutive Flexifuel Vehicle Euro 6 d/e,5,Flexi-fuel Vehicle,150
+Buses Battery electric Euro V,17,Battery electric,0
+Heavy Duty Trucks Battery electric Euro III,33,Battery electric,0
+Light Commercial Vehicles N1I Petrol PHEV Euro 6 dtemp,8,Petrol PHEV,42
+Light Commercial Vehicles N1I Diesel Euro 6 dtemp,8,Diesel,140
+Heavy Duty Trucks Articulated < 40 t CNG Euro VII,17,CNG,820
+LCategory Mopeds 4stroke <50 cm³ Petrol Euro 5,5,Petrol,60
+Light Commercial Vehicles N1III LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+Light Commercial Vehicles N1I LPG Bifuel Euro 5,16,LPG Bi-fuel,150
+Light Commercial Vehicles N1I CNG Bifuel Euro 6 a/b/c,11,CNG Bi-fuel,150
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro VI D/E,17,Diesel,700
+Buses CNG Euro VII,17,CNG,820
+Passenger Cars LargeSUVExecutive Petrol Hybrid Euro 6 d/e,5,Petrol Hybrid,92
+Light Commercial Vehicles N1III LPG Bifuel Euro 6 d/e,5,LPG Bi-fuel,150
+Passenger Cars Small Flexifuel Vehicle Euro 7,0,Flexi-fuel Vehicle,150
+Passenger Cars LargeSUVExecutive CNG Bifuel Euro 6 a/b/c,11,CNG Bi-fuel,100
+Light Commercial Vehicles N1III Battery electric Euro 7,0,Battery electric,0
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro VII,17,Diesel,700
+Passenger Cars LargeSUVExecutive Petrol PHEV Euro 7,0,Petrol PHEV,42
+Buses Petrol Euro VII,17,Petrol,150
+Heavy Duty Trucks Rigid 14 20 t Diesel Euro III,33,Diesel,820
+Light Commercial Vehicles N1I Petrol Euro 1,32,Petrol,180
+Light Commercial Vehicles N1III LPG Bifuel Euro 1,32,LPG Bi-fuel,150
+Light Commercial Vehicles N1III Petrol Euro 6 a/b/c,11,Petrol,140
+Buses Battery electric Euro VI D/E,17,Battery electric,0
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro I,33,Diesel,820
+Light Commercial Vehicles N1II Diesel Euro 6 dtemp,8,Diesel,140
+Light Commercial Vehicles N1II Petrol Hybrid Euro 4,20,Petrol Hybrid,92
+Passenger Cars Medium CNG Bifuel Euro 4,20,CNG Bi-fuel,110
+LCategory Motorcycles 4stroke 250 750 cm³ Petrol Conventional,35,Petrol,160
+Light Commercial Vehicles N1II Diesel Hybrid Euro 6 a/b/c,11,Diesel Hybrid,110
+Passenger Cars Medium Diesel Hybrid Euro 7,0,Diesel Hybrid,110
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro IV,33,Diesel,820
+Passenger Cars Small Flexifuel Vehicle Euro 6 a/b/c,11,Flexi-fuel Vehicle,150
+Light Commercial Vehicles N1I Fuel Cell Electric Vehicle Euro 7,0,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1III Diesel Euro 6 a/b/c,11,Diesel,140
+Passenger Cars Medium Petrol Euro 3,25,Petrol,171
+Light Commercial Vehicles N1I LPG Bifuel Euro 3,25,LPG Bi-fuel,150
+LCategory Battery electric (Motorcycle) Euro 4,9,Battery electric (Motorcycle),0
+Passenger Cars Medium Flexifuel Vehicle Euro 6 a/b/c,11,Flexi-fuel Vehicle,150
+Buses Diesel Hybrid (NOVC) Euro VI A/B/C,17,Diesel Hybrid,110
+Light Commercial Vehicles N1I Fuel Cell Electric Vehicle Euro 4,20,Fuel Cell Electric Vehicle,0
+LCategory Motorcycles 4stroke <250 cm³ Petrol Conventional,35,Petrol,160
+Passenger Cars Small Petrol Hybrid Euro 6 a/b/c,11,Petrol Hybrid,92
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro I,33,Diesel,820
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 5,16,Fuel Cell Electric Vehicle,0
+Passenger Cars LargeSUVExecutive Petrol Euro 7,0,Petrol,119
+Buses Coaches Articulated >18 t Diesel Euro III,33,Diesel,820
+LCategory Motorcycles 4stroke >750 cm³ Petrol Conventional,35,Petrol,160
+Buses Coaches Standard <=18 t Diesel Euro VI D/E,17,Diesel,700
+Light Commercial Vehicles N1I Fuel Cell Electric Vehicle Euro 6 dtemp,8,Fuel Cell Electric Vehicle,0
+Passenger Cars Medium Flexifuel Vehicle Euro 6 d/e,5,Flexi-fuel Vehicle,150
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 7,0,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 6 dtemp,8,Fuel Cell Electric Vehicle,0
+Passenger Cars Small Petrol ECE 15/0001,46,Petrol,210
+Passenger Cars Small Diesel PHEV Euro 6 d/e,5,Diesel PHEV,42
+Passenger Cars Medium Petrol PHEV Euro 6 d/e,5,Petrol PHEV,42
+Light Commercial Vehicles N1I Diesel PHEV Euro 7,0,Diesel PHEV,42
+Buses Diesel Hybrid (NOVC) Euro VI A/B/C,17,Diesel Hybrid,110
+Light Commercial Vehicles N1II Battery electric Euro 4,20,Battery electric,0
+Buses Urban Buses Diesel Hybrid Diesel Hybrid Euro VI D/E,17,Diesel Hybrid,110
+Light Commercial Vehicles N1I Petrol PHEV Euro 7,0,Petrol PHEV,42
+Light Commercial Vehicles N1II Diesel PHEV Euro 7,0,Diesel PHEV,42
+Light Commercial Vehicles N1I Diesel Euro 7,0,Diesel,135
+Light Commercial Vehicles N1III Diesel Hybrid Euro 5,16,Diesel Hybrid,110
+Heavy Duty Trucks Rigid 28 32 t Diesel Euro VII,17,Diesel,700
+Light Commercial Vehicles N1III CNG Bifuel Euro 6 dtemp,8,CNG Bi-fuel,150
+Buses Coaches Articulated >18 t Diesel Euro VI A/B/C,17,Diesel,700
+"Heavy Duty Trucks Rigid <=7,5 t Diesel Euro V",17,Diesel,700
+Light Commercial Vehicles N1I Battery electric Euro 6 dtemp,8,Battery electric,0
+Heavy Duty Trucks Articulated 40 50 t Diesel Euro I,33,Diesel,820
+Light Commercial Vehicles N1II Fuel Cell Electric Vehicle Euro 6 a/b/c,11,Fuel Cell Electric Vehicle,0
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro V,17,Diesel,700
+Light Commercial Vehicles N1I Diesel Hybrid Euro 5,16,Diesel Hybrid,110
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro III,33,Diesel,820
+Heavy Duty Trucks Fuel Cell Electric Vehicle Euro VII,17,Fuel Cell Electric Vehicle,0
+Passenger Cars LargeSUVExecutive Petrol ECE 15/03,40,Petrol,210
+Buses Urban CNG Buses >18 t CNG Euro VI D/E,17,CNG,820
+Passenger Cars Medium Diesel Conventional,45,Diesel,170
+Passenger Cars Small Petrol Euro 3,25,Petrol,171
+Passenger Cars LargeSUVExecutive Diesel Euro 7,0,Diesel,128
+Heavy Duty Trucks Diesel Hybrid Euro I,33,Diesel Hybrid,110
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro VI A/B/C,17,Diesel,700
+Heavy Duty Trucks LNG Euro III,33,LNG,150
+Heavy Duty Trucks Rigid 20 26 t Diesel Euro VI A/B/C,17,Diesel,700
+Light Commercial Vehicles N1II Battery electric Euro 6 dtemp,8,Battery electric,0
+Light Commercial Vehicles N1II Battery electric Euro 7,0,Battery electric,0
+Heavy Duty Trucks Articulated 14 20 t Diesel Euro VII,17,Diesel,700
+LCategory Battery electric (Motorcycle) Euro 1,26,Battery electric (Motorcycle),0
+Passenger Cars Medium Petrol Euro 6 d/e,5,Petrol,132
+Passenger Cars LargeSUVExecutive Petrol PHEV Euro 6 a/b/c,11,Petrol PHEV,42
+Buses LPG Euro I,33,LPG,150
+Light Commercial Vehicles N1II Battery electric Euro 6 d/e,5,Battery electric,0
+"Heavy Duty Trucks Rigid <=7,5 t CNG Euro VI D/E",17,CNG,820
+Light Commercial Vehicles N1III Diesel Euro 7,0,Diesel,135
+Buses Coaches Standard <=18 t Diesel Euro IV,33,Diesel,820
+Light Commercial Vehicles N1III CNG Bifuel Euro 1,32,CNG Bi-fuel,150
+Buses Fuel Cell Electric Vehicle Euro III,33,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1III Petrol Hybrid Euro 6 dtemp,8,Petrol Hybrid,92
+Heavy Duty Trucks Diesel Hybrid Euro VI A/B/C,17,Diesel Hybrid,110
+Heavy Duty Trucks Rigid >12 t CNG Euro VII,17,CNG,820
+Passenger Cars Mini CNG Bifuel Euro 6 a/b/c,11,CNG Bi-fuel,100
+Passenger Cars Medium Petrol PRE ECE,55,Petrol,210
+Buses Diesel Hybrid (NOVC) Euro V,17,Diesel Hybrid,110
+Heavy Duty Trucks Articulated 28 34 t Diesel Euro III,33,Diesel,820
+LCategory Mopeds 2stroke <50 cm³ Petrol Euro 1,26,Petrol,68
+Light Commercial Vehicles N1II CNG Bifuel Euro 2,28,CNG Bi-fuel,150
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 5,16,LPG Bi-fuel,150
+Passenger Cars Mini Petrol Hybrid Euro 6 a/b/c,11,Petrol Hybrid,92
+Light Commercial Vehicles N1III Diesel Hybrid Euro 6 dtemp,8,Diesel Hybrid,110
+Passenger Cars Mini LPG Bifuel Euro 5,16,LPG Bi-fuel,150
+Buses Petrol Euro VI D/E,17,Petrol,150
+Light Commercial Vehicles N1III Diesel Euro 1,32,Diesel,165
+Light Commercial Vehicles N1I Petrol PHEV Euro 5,16,Petrol PHEV,42
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 4,20,LPG Bi-fuel,150
+LCategory Mopeds 4stroke <50 cm³ Petrol Conventional,35,Petrol,70
+LCategory Battery electric (Microcar) Euro 1,26,Battery electric (Micro-car),0
+Passenger Cars LargeSUVExecutive CNG Bifuel Euro 6 dtemp,8,CNG Bi-fuel,100
+Passenger Cars Small Petrol Hybrid Euro 7,0,Petrol Hybrid,92
+Buses Diesel Hybrid (NOVC) Euro I,33,Diesel Hybrid,110
+Passenger Cars Medium LPG Bifuel Conventional,45,LPG Bi-fuel,150
+Passenger Cars Medium Battery electric Euro 4,20,Battery electric,0
+Light Commercial Vehicles N1II Diesel PHEV Euro 5,16,Diesel PHEV,42
+"Heavy Duty Trucks Rigid 7,5 12 t Diesel Euro IV",33,Diesel,820
+Heavy Duty Trucks Articulated < 40 t LNG Euro VII,17,LNG,150
+Light Commercial Vehicles N1I Diesel Euro 6 dtemp,8,Diesel,140
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 2,29,LPG Bi-fuel,150
+Passenger Cars Mini Petrol Hybrid Euro 4,20,Petrol Hybrid,92
+Buses Battery electric Conventional,37,Battery electric,0
+Light Commercial Vehicles N1I Diesel PHEV Euro 6 dtemp,8,Diesel PHEV,42
+Buses Coaches Standard <=18 t Diesel Euro III,33,Diesel,820
+Heavy Duty Trucks Diesel Hybrid Euro V,17,Diesel Hybrid,110
+Heavy Duty Trucks Articulated 20 28 t Diesel Conventional,37,Diesel,850
+Buses Urban Buses Standard 15 18 t Diesel Euro VII,17,Diesel,700
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro II,33,Diesel,820
+Heavy Duty Trucks Rigid 12 14 t Diesel Euro VI D/E,17,Diesel,700
+Light Commercial Vehicles N1III Fuel Cell Electric Vehicle Euro 5,16,Fuel Cell Electric Vehicle,0
+Passenger Cars LargeSUVExecutive Battery electric Euro 6 d/e,5,Battery electric,0
+Light Commercial Vehicles N1III Petrol Hybrid Euro 7,0,Petrol Hybrid,92
+Passenger Cars Mini LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+Buses Petrol Euro IV,33,Petrol,150
+Heavy Duty Trucks Rigid 26 28 t Diesel Euro III,33,Diesel,820
+Passenger Cars Small Fuel Cell Electric Vehicle Euro 6 dtemp,8,Fuel Cell Electric Vehicle,0
+Light Commercial Vehicles N1III Fuel Cell Electric Vehicle Euro 6 d/e,5,Fuel Cell Electric Vehicle,0
+LCategory Motorcycles 4stroke <250 cm³ Petrol Euro 3,19,Petrol,130
+LCategory Motorcycles 4stroke >750 cm³ Petrol Euro 5,5,Petrol,110
+Light Commercial Vehicles N1II LPG Bifuel Euro 6 d/e,5,LPG Bi-fuel,150
+Passenger Cars Small Battery electric Euro 7,0,Battery electric,0
+Light Commercial Vehicles N1II Petrol Hybrid Euro 5,16,Petrol Hybrid,92
+Passenger Cars LargeSUVExecutive Petrol Euro 2,29,Petrol,184
+Passenger Cars Medium Petrol Euro 2,29,Petrol,184
+Passenger Cars LargeSUVExecutive Petrol Euro 4,20,Petrol,158
+Light Commercial Vehicles N1I Petrol Euro 4,20,Petrol,150
+Buses Urban CNG Buses <=15 t CNG Euro VI D/E,17,CNG,820
+Heavy Duty Trucks Articulated 50 60 t Diesel Euro III,33,Diesel,820
+Passenger Cars Medium Battery electric Euro 7,0,Battery electric,0
+LCategory Motorcycles 4stroke 250 750 cm³ Petrol Euro 2,22,Petrol,140
+Light Commercial Vehicles N1III Petrol Hybrid Euro 6 d/e,5,Petrol Hybrid,92
+Buses Urban CNG Buses CNG Euro I,33,CNG,900
+Passenger Cars Medium Diesel Hybrid Euro 6 dtemp,8,Diesel Hybrid,110
+Passenger Cars Medium CNG Bifuel Euro 5,16,CNG Bi-fuel,100
+Buses LPG Euro VI A/B/C,17,LPG,150
+Passenger Cars LargeSUVExecutive Diesel PHEV Euro 7,0,Diesel PHEV,42
+Passenger Cars Mini Diesel Euro 5,16,Diesel,140
+Passenger Cars LargeSUVExecutive LPG Bifuel Euro 6 dtemp,8,LPG Bi-fuel,150
+Heavy Duty Trucks Rigid >32 t Diesel Euro I,33,Diesel,820
+Passenger Cars LargeSUVExecutive Diesel Euro 2,29,Diesel,158
+Passenger Cars Medium Diesel PHEV Euro 6 dtemp,8,Diesel PHEV,42
+Heavy Duty Trucks Diesel PHEV Euro IV,33,Diesel PHEV,42
+Passenger Cars Medium Diesel Euro 5,16,Diesel,140
+Heavy Duty Trucks LNG Euro V,17,LNG,150
+Passenger Cars Medium Petrol Hybrid Euro 4,20,Petrol Hybrid,92
+Buses Coaches Articulated >18 t Diesel Euro VI D/E,17,Diesel,700

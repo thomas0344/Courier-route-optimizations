@@ -1,0 +1,294 @@
+{% extends "manager/base.html" %}
+
+{% block title %}Reports - Manager Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Reports & Insights</h1>
+        <p class="text-muted mb-0">Aggregated route, goods, vehicle and optimization metrics.</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" onclick="loadReports()">
+            <i class="fas fa-rotate"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4" id="summaryCards">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);">
+            <div class="stats-number" id="totalRoutes">0</div>
+            <div>Total Routes</div>
+            <small class="opacity-75">Pending <span id="pendingRoutes">0</span> · In Progress <span id="inProgressRoutes">0</span> · Completed <span id="completedRoutes">0</span></small>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);">
+            <div class="stats-number" id="goodsInTransit">0</div>
+            <div>Goods In Transit</div>
+            <small class="opacity-75">Total goods <span id="totalGoods">0</span> · Weight <span id="totalGoodsWeight">0</span> kg</small>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
+            <div class="stats-number" id="totalVehicles">0</div>
+            <div>Fleet</div>
+            <small class="opacity-75">Locations <span id="totalLocations">0</span></small>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+            <div class="stats-number" id="savedSegments">0</div>
+            <div>Saved Segments</div>
+            <small class="opacity-75">ML waypoints stored</small>
+        </div>
+    </div>
+</div>
+
+<!-- Tables -->
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-route me-2"></i>Route Performance</h5>
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Route</th>
+                            <th>Agent</th>
+                            <th>Vehicle</th>
+                            <th>Stops</th>
+                            <th>Weight (kg)</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="routeTable">
+                        <tr><td colspan="7" class="text-center text-muted">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Goods by Category</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="goodsChart" height="220"></canvas>
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Items</th>
+                                <th>Weight (kg)</th>
+                                <th>In Transit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="goodsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Vehicles</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Count</th>
+                                <th>Diesel</th>
+                                <th>Petrol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicleTable">
+                            <tr><td colspan="4" class="text-center text-muted">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-magic me-2"></i>Optimization Saves</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Route</th>
+                                <th>Segments</th>
+                                <th>Stops</th>
+                                <th>Last Saved</th>
+                            </tr>
+                        </thead>
+                        <tbody id="optTable">
+                            <tr><td colspan="4" class="text-center text-muted">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let goodsChart;
+
+    function badgeForStatus(status) {
+        const map = {
+            pending: 'bg-warning',
+            in_progress: 'bg-info',
+            completed: 'bg-success'
+        };
+        return `<span class="badge ${map[status] || 'bg-secondary'} text-uppercase">${status || 'unknown'}</span>`;
+    }
+
+    function renderGoodsChart(goods) {
+        const labels = goods.map(g => g.category || 'Unknown');
+        const data = goods.map(g => g.count || 0);
+        const bg = ['#2980b9', '#8e44ad', '#16a085', '#e67e22', '#c0392b', '#2c3e50'];
+
+        if (goodsChart) goodsChart.destroy();
+        const ctx = document.getElementById('goodsChart');
+        goodsChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: bg.slice(0, data.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: { legend: { position: 'bottom' } },
+                cutout: '60%'
+            }
+        });
+    }
+
+    function loadReports() {
+        fetch('/manager/api/reports/overview')
+            .then(r => r.json())
+            .then(d => {
+                if (!d.success) throw new Error(d.message || 'Failed to load');
+
+                const s = d.summary;
+                document.getElementById('totalRoutes').textContent = s.total_routes;
+                document.getElementById('pendingRoutes').textContent = s.pending_routes;
+                document.getElementById('inProgressRoutes').textContent = s.in_progress_routes;
+                document.getElementById('completedRoutes').textContent = s.completed_routes;
+                document.getElementById('goodsInTransit').textContent = s.goods_in_transit;
+                document.getElementById('totalGoods').textContent = s.total_goods;
+                document.getElementById('totalGoodsWeight').textContent = (s.total_goods_weight || 0).toFixed(2);
+                document.getElementById('totalVehicles').textContent = s.total_vehicles;
+                document.getElementById('totalLocations').textContent = s.total_locations;
+                document.getElementById('savedSegments').textContent = s.saved_segments;
+
+                // Routes table
+                const routeBody = document.getElementById('routeTable');
+                routeBody.innerHTML = '';
+                if (d.routes.length === 0) {
+                    routeBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No routes found</td></tr>';
+                } else {
+                    d.routes.forEach(r => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${r.route_name || '-'}</strong></td>
+                            <td>${r.agent_name || '-'}</td>
+                            <td>${r.vehicle_name || '-'}</td>
+                            <td><span class="badge bg-primary">${r.stops || 0}</span></td>
+                            <td>${(r.total_weight || 0).toFixed(2)}</td>
+                            <td>${badgeForStatus(r.status)}</td>
+                            <td><small class="text-muted">${r.created_at || '-'}</small></td>
+                        `;
+                        routeBody.appendChild(tr);
+                    });
+                }
+
+                // Goods table + chart
+                const goodsBody = document.getElementById('goodsTable');
+                goodsBody.innerHTML = '';
+                if (d.goods.length === 0) {
+                    goodsBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No goods data</td></tr>';
+                } else {
+                    d.goods.forEach(g => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${g.category || 'Unknown'}</td>
+                            <td>${g.count || 0}</td>
+                            <td>${(g.total_weight || 0).toFixed(2)}</td>
+                            <td>${g.in_transit || 0}</td>
+                        `;
+                        goodsBody.appendChild(tr);
+                    });
+                    renderGoodsChart(d.goods);
+                }
+
+                // Vehicle table
+                const vehicleBody = document.getElementById('vehicleTable');
+                vehicleBody.innerHTML = '';
+                if (d.vehicles.length === 0) {
+                    vehicleBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No vehicles</td></tr>';
+                } else {
+                    d.vehicles.forEach(v => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${v.type || 'Unknown'}</strong></td>
+                            <td>${v.count || 0}</td>
+                            <td>${v.diesel_count || 0}</td>
+                            <td>${v.petrol_count || 0}</td>
+                        `;
+                        vehicleBody.appendChild(tr);
+                    });
+                }
+
+                // Optimization table
+                const optBody = document.getElementById('optTable');
+                optBody.innerHTML = '';
+                if (d.optimization.length === 0) {
+                    optBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No saved optimizations</td></tr>';
+                } else {
+                    d.optimization.forEach(o => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${o.route_name || 'Unknown'}</td>
+                            <td><span class="badge bg-success">${o.segments_saved || 0}</span></td>
+                            <td>${o.stops_saved || 0}</td>
+                            <td><small class="text-muted">${o.last_saved || '-'}</small></td>
+                        `;
+                        optBody.appendChild(tr);
+                    });
+                }
+            })
+            .catch(err => {
+                console.error('Report load failed:', err);
+                alert('Failed to load reports: ' + err.message);
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReports);
+</script>
+{% endblock %}
+

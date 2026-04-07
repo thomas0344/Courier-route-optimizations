@@ -1,0 +1,451 @@
+{% extends "manager/base.html" %}
+
+{% block title %}Goods Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Add/Edit Good Modal -->
+    <div class="modal fade" id="goodModal" tabindex="-1" aria-labelledby="goodModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="goodModalLabel">Add New Good</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="goodForm">
+                        <input type="hidden" id="goodId" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="goodName">Good Name *</label>
+                                    <input type="text" class="form-control" id="goodName" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="goodWeight">Weight (kg) *</label>
+                                    <input type="number" class="form-control" id="goodWeight" name="weight" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="goodCategory">Category *</label>
+                                    <select class="form-control" id="goodCategory" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="electronics">Electronics</option>
+                                        <option value="furniture">Furniture</option>
+                                        <option value="groceries">Groceries</option>
+                                        <option value="clothing">Clothing</option>
+                                        <option value="medical">Medical Supplies</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="goodStatus">Status</label>
+                                    <select class="form-control" id="goodStatus" name="status">
+                                        <option value="available">Available</option>
+                                        <option value="in_transit">In Transit</option>
+                                        <option value="delivered">Delivered</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="goodDescription">Description</label>
+                            <textarea class="form-control" id="goodDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" onclick="saveGood()">
+                        <i class="fas fa-save"></i> Save Good
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="totalGoods">0</h4>
+                            <p class="mb-0">Total Goods</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-boxes fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="availableGoods">0</h4>
+                            <p class="mb-0">Available</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="inTransitGoods">0</h4>
+                            <p class="mb-0">In Transit</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-truck fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="totalWeight">0</h4>
+                            <p class="mb-0">Total Weight (kg)</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-weight fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Goods Inventory</h4>
+                    <button class="btn btn-primary" onclick="showAddGoodModal()">
+                        <i class="fas fa-plus"></i> Add New Good
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="goodsTable" class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Weight (kg)</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Goods will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Category Distribution</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="goodsChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let goodsChart;
+    let currentEditId = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        loadGoods();
+        loadStats();
+        initGoodsChart();
+    });
+    
+    function initGoodsChart() {
+        const ctx = document.getElementById('goodsChart').getContext('2d');
+        goodsChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Electronics', 'Furniture', 'Groceries', 'Clothing', 'Medical', 'Other'],
+                datasets: [{
+                    label: 'Goods by Category',
+                    data: [0, 0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Goods Distribution by Category'
+                    }
+                }
+            }
+        });
+    }
+    
+    function loadGoods() {
+        fetch('/manager/goods/list')
+            .then(response => response.json())
+            .then(data => {
+                if (!Array.isArray(data)) {
+                    console.error('Expected array from /manager/goods/list, got:', data);
+                    showAlert('Error loading goods data', 'danger');
+                    return;
+                }
+                
+                const tableBody = document.getElementById('goodsTable').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = '';
+                
+                data.forEach(good => {
+                    const row = tableBody.insertRow();
+                    row.insertCell(0).textContent = good.name;
+                    row.insertCell(1).textContent = parseFloat(good.weight).toFixed(2);
+                    row.insertCell(2).innerHTML = `<span class="badge bg-secondary">${good.category.charAt(0).toUpperCase() + good.category.slice(1)}</span>`;
+                    row.insertCell(3).textContent = good.description || '';
+                    const statusCell = row.insertCell(4);
+                    let statusClass = good.status === 'available' ? 'bg-success' : 
+                                    good.status === 'in_transit' ? 'bg-warning' : 
+                                    'bg-info';
+                    statusCell.innerHTML = `<span class="badge ${statusClass}">${good.status.replace('_', ' ').toUpperCase()}</span>`;
+                    
+                    const actionsCell = row.insertCell(5);
+                    actionsCell.innerHTML = `
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editGood(${good.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteGood(${good.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                });
+                
+                updateChartData(data);
+            })
+            .catch(error => {
+                console.error('Error loading goods:', error);
+                showAlert('Error loading goods data', 'danger');
+            });
+    }
+    
+    function loadStats() {
+        fetch('/manager/goods/stats')
+            .then(response => response.json())
+            .then(stats => {
+                if (!stats.success && stats.message) {
+                    showAlert(stats.message, 'danger');
+                    return;
+                }
+                
+                document.getElementById('totalGoods').textContent = stats.total_goods || 0;
+                document.getElementById('availableGoods').textContent = stats.available_goods || 0;
+                document.getElementById('inTransitGoods').textContent = stats.in_transit_goods || 0;
+                document.getElementById('totalWeight').textContent = parseFloat(stats.total_weight || 0).toFixed(2);
+            })
+            .catch(error => {
+                console.error('Error loading stats:', error);
+                showAlert('Error loading stats', 'danger');
+            });
+    }
+    
+    function updateChartData(goods) {
+        const categoryData = {
+            electronics: 0,
+            furniture: 0,
+            groceries: 0,
+            clothing: 0,
+            medical: 0,
+            other: 0
+        };
+        
+        goods.forEach(good => {
+            if (categoryData.hasOwnProperty(good.category)) {
+                categoryData[good.category] += 1; // Count number of goods per category
+            }
+        });
+        
+        goodsChart.data.datasets[0].data = [
+            categoryData.electronics,
+            categoryData.furniture,
+            categoryData.groceries,
+            categoryData.clothing,
+            categoryData.medical,
+            categoryData.other
+        ];
+        goodsChart.update();
+    }
+    
+    function showAddGoodModal() {
+        currentEditId = null;
+        document.getElementById('goodModalLabel').textContent = 'Add New Good';
+        document.getElementById('goodForm').reset();
+        document.getElementById('goodId').value = '';
+        const modal = new bootstrap.Modal(document.getElementById('goodModal'));
+        modal.show();
+    }
+    
+    function editGood(id) {
+        currentEditId = id;
+        document.getElementById('goodModalLabel').textContent = 'Edit Good';
+        
+        fetch('/manager/goods/list')
+            .then(response => response.json())
+            .then(goods => {
+                const good = goods.find(g => g.id === id);
+                if (good) {
+                    document.getElementById('goodId').value = good.id;
+                    document.getElementById('goodName').value = good.name;
+                    document.getElementById('goodWeight').value = good.weight;
+                    document.getElementById('goodCategory').value = good.category;
+                    document.getElementById('goodStatus').value = good.status;
+                    document.getElementById('goodDescription').value = good.description || '';
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('goodModal'));
+                    modal.show();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching good for edit:', error);
+                showAlert('Error loading good data', 'danger');
+            });
+    }
+    
+    function saveGood() {
+        const formData = new FormData(document.getElementById('goodForm'));
+        const name = formData.get('name');
+        const weight = formData.get('weight');
+        const category = formData.get('category');
+        
+        if (!name || !weight || !category) {
+            showAlert('Please fill in all required fields', 'warning');
+            return;
+        }
+        
+        const url = currentEditId ? `/manager/goods/update/${currentEditId}` : '/manager/goods/add';
+        const method = currentEditId ? 'PUT' : 'POST';
+        
+        let requestOptions = {
+            method: method,
+        };
+        
+        if (currentEditId) {
+            // For PUT request, send JSON
+            const data = {
+                name: formData.get('name'),
+                weight: parseFloat(formData.get('weight')),
+                category: formData.get('category'),
+                description: formData.get('description'),
+                status: formData.get('status')
+            };
+            requestOptions.headers = {
+                'Content-Type': 'application/json',
+            };
+            requestOptions.body = JSON.stringify(data);
+        } else {
+            // For POST request, send FormData
+            requestOptions.body = formData;
+        }
+        
+        fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('goodModal'));
+                    modal.hide();
+                    loadGoods();
+                    loadStats();
+                } else {
+                    showAlert(result.message || 'Error saving good', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving good:', error);
+                showAlert('Error saving good', 'danger');
+            });
+    }
+    
+    function deleteGood(id) {
+        if (confirm('Are you sure you want to delete this good?')) {
+            fetch(`/manager/goods/delete/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    loadGoods();
+                    loadStats();
+                } else {
+                    showAlert(result.message || 'Error deleting good', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting good:', error);
+                showAlert('Error deleting good', 'danger');
+            });
+        }
+    }
+    
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const container = document.querySelector('.container-fluid');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 5000);
+    }
+</script>
+{% endblock %}

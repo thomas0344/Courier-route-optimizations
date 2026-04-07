@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRoute Visualizer | Premium Navigation</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0ea5e9;
+            --bg-light: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --glass: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .sidebar {
+            width: 400px;
+            background: var(--bg-light);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 10;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .coords-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        input {
+            background: white;
+            border: 1px solid var(--glass-border);
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            color: var(--text-main);
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .route-info {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: none;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info-title {
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        /* ETA Card Styling */
+        .eta-card {
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .eta-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .eta-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.9;
+        }
+
+        .eta-header svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .eta-main {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .eta-time {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .eta-duration-text {
+            font-size: 0.875rem;
+            opacity: 0.85;
+        }
+
+        .eta-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .eta-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .eta-detail-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.75;
+        }
+
+        .eta-detail-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .intermediate-points {
+            margin-top: 1.5rem;
+        }
+
+        .point-tag {
+            background: #f1f5f9;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            margin: 0.2rem;
+            display: inline-block;
+            border: 1px solid #e2e8f0;
+            color: var(--text-main);
+        }
+
+        /* Marker Customization */
+        .custom-marker {
+            background: var(--primary);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .intermediate-marker {
+            background: var(--secondary);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 8px var(--secondary);
+        }
+
+        /* Leaflet Controls Styling */
+        .leaflet-bar {
+            border: none !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .leaflet-bar a {
+            background-color: white !important;
+            color: var(--text-main) !important;
+            border-bottom: 1px solid var(--glass-border) !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="header">
+            <h1>Route Optimizer</h1>
+            <p>Smart pathfinding with intermediate analysis</p>
+        </div>
+
+        <div class="input-group">
+            <div class="input-field">
+                <label>Start Location</label>
+                <div class="coords-inputs">
+                    <input type="text" id="start-lat" placeholder="Latitude" value="12.9716">
+                    <input type="text" id="start-lon" placeholder="Longitude" value="77.5946">
+                </div>
+            </div>
+
+            <div class="input-field">
+                <label>End Location</label>
+                <div class="coords-inputs">
+                    <input type="text" id="end-lat" placeholder="Latitude" value="13.0827">
+                    <input type="text" id="end-lon" placeholder="Longitude" value="80.2707">
+                </div>
+            </div>
+
+            <button id="calculate-btn">
+                <span>Calculate Route</span>
+            </button>
+        </div>
+
+        <div id="route-info" class="route-info">
+            <div class="info-title">Route Summary</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Distance</span>
+                    <span id="dist-val" class="stat-value">-- km</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Duration</span>
+                    <span id="dur-val" class="stat-value">-- min</span>
+                </div>
+            </div>
+
+            <!-- ETA Card -->
+            <div class="eta-card">
+                <div class="eta-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Estimated Time of Arrival</span>
+                </div>
+                <div class="eta-main">
+                    <span id="eta-time" class="eta-time">--:--</span>
+                    <span id="eta-duration" class="eta-duration-text"></span>
+                </div>
+                <div class="eta-details">
+                    <div class="eta-detail-item">
+                        <span class="eta-detail-label">Departure</span>
+                        <span id="departure-time" class="eta-detail-value">--:--</span>
+                    </div>
+                    <div class="eta-detail-item">
+                        <span class="eta-detail-label">Arrival</span>
+                        <span id="arrival-time" class="eta-detail-value">--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="intermediate-points">
+                <label>Key Milestones</label>
+                <div id="milestones-list">
+                    <!-- Points injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize Map
+        const map = L.map('map', {
+            zoomControl: false
+        }).setView([12.9716, 77.5946], 7);
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // Standard OpenStreetMap tiles to match reference image
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        let currentRoute = null;
+        let markers = [];
+
+        async function findRoute() {
+            const btn = document.getElementById('calculate-btn');
+            const infoBox = document.getElementById('route-info');
+
+            const payload = {
+                start_lat: document.getElementById('start-lat').value,
+                start_lon: document.getElementById('start-lon').value,
+                end_lat: document.getElementById('end-lat').value,
+                end_lon: document.getElementById('end-lon').value
+            };
+
+            // Basic validation
+            if (!payload.start_lat || !payload.start_lon || !payload.end_lat || !payload.end_lon) {
+                alert('Please enter all coordinates');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.innerText = 'Calculating...';
+
+            try {
+                const response = await fetch('/api/route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Clear previous route/markers
+                    if (currentRoute) map.removeLayer(currentRoute);
+                    markers.forEach(m => map.removeLayer(m));
+                    markers = [];
+
+                    // Draw Route
+                    currentRoute = L.polyline(data.route_coordinates, {
+                        color: '#2563eb', // Blue
+                        weight: 6,
+                        opacity: 0.8,
+                        lineJoin: 'round',
+                        lineCap: 'round'
+                    }).addTo(map);
+
+                    // Fit map to route
+                    map.fitBounds(currentRoute.getBounds(), { padding: [50, 50] });
+
+                    // Add Start/End Markers
+                    const startMarker = L.circleMarker([payload.start_lat, payload.start_lon], {
+                        radius: 8,
+                        fillColor: '#10b981', // green
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 1
+                    }).addTo(map).bindPopup('Start Point');
+
+                    const endMarker = L.circleMarker([payload.end_lat, payload.end_lon], {
+                        radius: 8,
+                        fillColor: '#ef4444', // red
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 1
+                    }).addTo(map).bindPopup('End Point');
+
+                    markers.push(startMarker, endMarker);
+
+                    // Add Intermediate Points (The 5 requested)
+                    const milestonesList = document.getElementById('milestones-list');
+                    milestonesList.innerHTML = '';
+
+                    data.intermediate_points.forEach((pt, idx) => {
+                        const m = L.circleMarker([pt.lat, pt.lon], {
+                            radius: 6,
+                            fillColor: '#0ea5e9', // blue
+                            color: '#fff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        }).addTo(map).bindPopup(`Milestone ${idx + 1}<br>Elev: ${pt.elev.toFixed(1)}m`);
+                        markers.push(m);
+
+                        const tag = document.createElement('span');
+                        tag.className = 'point-tag';
+                        tag.innerHTML = `M${idx + 1}: ${pt.lat.toFixed(3)}, ${pt.lon.toFixed(3)}`;
+                        milestonesList.appendChild(tag);
+                    });
+
+                    // Update UI
+                    document.getElementById('dist-val').innerText = (data.summary.distance / 1000).toFixed(1) + ' km';
+                    document.getElementById('dur-val').innerText = (data.summary.duration / 60).toFixed(0) + ' min';
+                    infoBox.style.display = 'block';
+
+                    // Fetch ETA data
+                    await fetchAndDisplayETA(payload);
+
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An unexpected error occurred');
+            } finally {
+                btn.classList.remove('loading');
+                btn.innerText = 'Calculate Route';
+            }
+        }
+
+        async function fetchAndDisplayETA(payload) {
+            try {
+                const etaResponse = await fetch('/api/eta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const etaData = await etaResponse.json();
+
+                if (etaData.success) {
+                    const eta = etaData.eta;
+
+                    // Parse arrival time to show in a friendly format
+                    const arrivalDate = new Date(eta.estimated_arrival_time.replace(' ', 'T'));
+                    const departureDate = new Date(eta.departure_time.replace(' ', 'T'));
+
+                    // Format times
+                    const formatTime = (date) => {
+                        return date.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                    };
+
+                    const formatDateTime = (date) => {
+                        return date.toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                    };
+
+                    // Update ETA card
+                    document.getElementById('eta-time').innerText = formatTime(arrivalDate);
+                    document.getElementById('eta-duration').innerText = `(${eta.formatted_duration})`;
+                    document.getElementById('departure-time').innerText = formatTime(departureDate);
+                    document.getElementById('arrival-time').innerText = formatDateTime(arrivalDate);
+                } else {
+                    console.error('ETA Error:', etaData.error);
+                }
+            } catch (err) {
+                console.error('ETA fetch error:', err);
+            }
+        }
+
+        document.getElementById('calculate-btn').addEventListener('click', findRoute);
+
+        // Allow selection on map to set coordinates
+        let selectorType = 'start';
+        map.on('click', (e) => {
+            const { lat, lng } = e.latlng;
+            if (selectorType === 'start') {
+                document.getElementById('start-lat').value = lat.toFixed(6);
+                document.getElementById('start-lon').value = lng.toFixed(6);
+                selectorType = 'end';
+                // Show a hint or something?
+            } else {
+                document.getElementById('end-lat').value = lat.toFixed(6);
+                document.getElementById('end-lon').value = lng.toFixed(6);
+                selectorType = 'start';
+            }
+        });
+    </script>
+</body>
+
+</html>

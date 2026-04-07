@@ -1,0 +1,559 @@
+{% extends "manager/base.html" %}
+
+{% block title %}Dashboard - Manager Panel{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Dashboard</h1>
+        <p class="text-muted mb-0">Welcome back! Here's what's happening with your routes today.</p>
+    </div>
+    <div>
+        <span class="badge bg-success">Live</span>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <div class="stats-number" id="totalLocations">0</div>
+                    <div>Total Locations</div>
+                </div>
+                <div class="ms-3">
+                    <i class="fas fa-map-marker-alt fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <div class="stats-number" id="activeAgents">0</div>
+                    <div>Active Agents</div>
+                </div>
+                <div class="ms-3">
+                    <i class="fas fa-users fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <div class="stats-number" id="routesToday">0</div>
+                    <div>Routes Today</div>
+                </div>
+                <div class="ms-3">
+                    <i class="fas fa-route fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <div class="stats-number" id="efficiency">0%</div>
+                    <div>Efficiency</div>
+                </div>
+                <div class="ms-3">
+                    <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Container -->
+<div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10000; pointer-events: none;">
+</div>
+
+<!-- Reply Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reply to Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="replyRouteId">
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <textarea class="form-control" id="replyMessage" rows="3"
+                        placeholder="Type your response here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendReply()">Send Message</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Row -->
+<div class="row">
+    <!-- Recent Activity -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="activityFeed">
+                    <!-- Activity items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/manager/locations" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Location
+                    </a>
+                    <a href="/manager/vehicles" class="btn btn-danger">
+                        <i class="fas fa-truck me-2"></i>Register Vehicle
+                    </a>
+                    <a href="/manager/routes" class="btn btn-success">
+                        <i class="fas fa-route me-2"></i>Optimize Routes
+                    </a>
+                    <a href="/manager/agents" class="btn btn-info">
+                        <i class="fas fa-users me-2"></i>Manage Agents
+                    </a>
+                    <a href="/manager/reports" class="btn btn-warning">
+                        <i class="fas fa-chart-bar me-2"></i>View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-server me-2"></i>
+                    System Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Database</span>
+                    <span class="badge bg-success">Online</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Maps API</span>
+                    <span class="badge bg-success">Online</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Agents</span>
+                    <span class="badge bg-warning">3/5 Online</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Routes</span>
+                    <span class="badge bg-info">5 Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Route Communications Section -->
+        <div class="card mt-3">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0 text-dark">
+                    <i class="fas fa-comments me-2"></i>
+                    Direct Message
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Select Agent Route</label>
+                    <select class="form-select form-select-sm" id="dashboardRouteSelect"
+                        onchange="loadDashboardMessages()">
+                        <option value="">-- Choose a Route --</option>
+                    </select>
+                </div>
+
+                <div id="dashboardChatHistory" class="message-box mb-3 p-2 border rounded bg-light"
+                    style="height: 250px; overflow-y: auto; font-size: 0.85rem;">
+                    <p class="text-muted text-center mt-5">Select a route to view conversation</p>
+                </div>
+
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" id="dashboardMessageInput"
+                        placeholder="Type message to agent..."
+                        onkeypress="if(event.key==='Enter') sendDashboardMessage()">
+                    <button class="btn btn-primary" type="button" onclick="sendDashboardMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mt-4">
+</div>
+</div>
+
+<style>
+    .message-box {
+        background: #fdfdfd;
+        border: 1px solid #eee;
+    }
+
+    .message-item {
+        padding: 8px 12px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        max-width: 90%;
+        line-height: 1.4;
+        position: relative;
+    }
+
+    .message-agent {
+        background: #e3f2fd;
+        margin-right: auto;
+        border-bottom-left-radius: 2px;
+        border: 1px solid #bbdefb;
+    }
+
+    .message-admin {
+        background: #f1f8e9;
+        margin-left: auto;
+        text-align: right;
+        border-bottom-right-radius: 2px;
+        border: 1px solid #dcedc8;
+    }
+
+    .message-item .sender-label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        margin-bottom: 2px;
+        color: #555;
+    }
+
+    .message-item .time-label {
+        font-size: 0.65rem;
+        opacity: 0.6;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Load dashboard data
+    function loadDashboardData() {
+        // Load total locations
+        fetch('/manager/api/locations/count')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalLocations').textContent = data.count || 0;
+            })
+            .catch(error => console.error('Error loading locations count:', error));
+
+        // Load active agents
+        fetch('/manager/api/agents/active')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('activeAgents').textContent = data.count || 0;
+            })
+            .catch(error => console.error('Error loading active agents:', error));
+
+        // Load routes today
+        fetch('/manager/api/routes/today')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('routesToday').textContent = data.count || 0;
+            })
+            .catch(error => console.error('Error loading routes today:', error));
+
+        // Load efficiency
+        fetch('/manager/api/efficiency')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('efficiency').textContent = (data.efficiency || 0) + '%';
+            })
+            .catch(error => console.error('Error loading efficiency:', error));
+
+        // Load recent activity
+        loadRecentActivity();
+    }
+
+    function loadRecentActivity() {
+        fetch('/manager/api/activity')
+            .then(response => response.json())
+            .then(data => {
+                const activityFeed = document.getElementById('activityFeed');
+                activityFeed.innerHTML = '';
+
+                if (data.length === 0) {
+                    activityFeed.innerHTML = '<p class="text-muted text-center">No recent activity</p>';
+                    return;
+                }
+
+                data.forEach(activity => {
+                    const isMessageOrAlert = activity.sender_type === 'agent' || activity.sender_type === 'system';
+                    const bgClass = activity.sender_type === 'system' ? 'bg-danger' : (activity.sender_type === 'agent' ? 'bg-primary' : 'bg-success');
+                    const iconClass = activity.sender_type === 'system' ? 'fa-exclamation-triangle' : (activity.sender_type === 'agent' ? 'fa-comment' : 'fa-check-circle');
+
+                    const activityItem = document.createElement('div');
+                    activityItem.className = 'd-flex align-items-start mb-3 p-3 border rounded shadow-sm hover-elevate transition-all';
+                    activityItem.style.background = isMessageOrAlert ? '#fff9f0' : '#fff';
+
+                    activityItem.innerHTML = `
+                        <div class="flex-shrink-0 me-3">
+                            <div class="${bgClass} text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0 fw-bold">${activity.action}</h6>
+                                <small class="text-muted"><i class="far fa-clock me-1"></i>${activity.timestamp}</small>
+                            </div>
+                            <p class="mb-2 text-dark">${activity.description}</p>
+                            ${isMessageOrAlert ? `
+                                <button class="btn btn-sm btn-outline-primary" onclick="openReplyModal(${activity.route_id}, '${activity.action}')">
+                                    <i class="fas fa-reply me-1"></i> Reply to Agent
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    activityFeed.appendChild(activityItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading recent activity:', error);
+                document.getElementById('activityFeed').innerHTML = '<p class="text-muted text-center">Error loading activity</p>';
+            });
+    }
+
+    // Initialize charts
+    function initCharts() {
+        // Route Distribution Chart
+        const routeCtx = document.getElementById('routeChart').getContext('2d');
+        new Chart(routeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Active', 'Pending'],
+                datasets: [{
+                    data: [12, 5, 3],
+                    backgroundColor: ['#27ae60', '#3498db', '#f39c12'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Performance Trends Chart
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(performanceCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Efficiency %',
+                    data: [85, 87, 82, 90, 88, 92, 89],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
+
+    // Messaging functionality
+    function openReplyModal(routeId, title) {
+        document.getElementById('replyRouteId').value = routeId;
+        document.getElementById('replyMessage').value = '';
+        const modal = new bootstrap.Modal(document.getElementById('replyModal'));
+        modal.show();
+    }
+
+    function sendReply() {
+        const routeId = document.getElementById('replyRouteId').value;
+        const message = document.getElementById('replyMessage').value;
+
+        if (!message.trim()) return;
+
+        fetch('/manager/api/send-message-to-agent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ route_id: routeId, message: message })
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('replyModal')).hide();
+                    showNotification('success', 'Message sent successfully!');
+                    loadRecentActivity();
+                } else {
+                    alert('Error: ' + d.message);
+                }
+            });
+    }
+
+    function showNotification(type, message) {
+        const container = document.getElementById('notificationContainer');
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} shadow-lg animate__animated animate__fadeInRight`;
+        toast.style.minWidth = '250px';
+        toast.style.pointerEvents = 'auto';
+        toast.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+            </div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.remove('animate__fadeInRight');
+            toast.classList.add('animate__fadeOutRight');
+            setTimeout(() => container.removeChild(toast), 1000);
+        }, 3000);
+    }
+
+    // Dashboard Messaging logic
+    let dashboardRoutes = [];
+    let messagePollingInterval = null;
+
+    function loadDashboardRoutes() {
+        fetch('/manager/routes/list')
+            .then(res => res.json())
+            .then(data => {
+                dashboardRoutes = data;
+                const select = document.getElementById('dashboardRouteSelect');
+                if (!select) return;
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">-- Choose a Route --</option>';
+                data.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.textContent = `${r.route_name} (${r.agent_name})`;
+                    select.appendChild(opt);
+                });
+                if (currentValue) select.value = currentValue;
+            });
+    }
+
+    function loadDashboardMessages() {
+        const routeId = document.getElementById('dashboardRouteSelect').value;
+        const box = document.getElementById('dashboardChatHistory');
+
+        if (!routeId) {
+            box.innerHTML = '<p class="text-muted text-center mt-5">Select a route to view conversation</p>';
+            if (messagePollingInterval) {
+                clearInterval(messagePollingInterval);
+                messagePollingInterval = null;
+            }
+            return;
+        }
+
+        fetch(`/manager/api/get-messages/${routeId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
+                    box.innerHTML = '';
+                    if (data.messages.length === 0) {
+                        box.innerHTML = '<p class="text-muted text-center mt-5">No messages yet</p>';
+                    } else {
+                        data.messages.forEach(m => {
+                            const div = document.createElement('div');
+                            div.className = `message-item ${m.sender_type === 'admin' ? 'message-admin' : 'message-agent'}`;
+                            div.innerHTML = `
+                                <div class="sender-label">${m.sender_type === 'admin' ? 'YOU (MANAGER)' : 'AGENT'}</div>
+                                <div class="message-content">${m.message}</div>
+                                <div class="time-label">${m.created_at}</div>
+                            `;
+                            box.appendChild(div);
+                        });
+                        if (isAtBottom) box.scrollTop = box.scrollHeight;
+                    }
+                }
+            });
+
+        // Setup polling if not already started
+        if (!messagePollingInterval) {
+            messagePollingInterval = setInterval(loadDashboardMessages, 3000);
+        }
+    }
+
+    function sendDashboardMessage() {
+        const routeId = document.getElementById('dashboardRouteSelect').value;
+        const input = document.getElementById('dashboardMessageInput');
+        const message = input.value.trim();
+
+        if (!routeId) {
+            alert('Please select a route first');
+            return;
+        }
+        if (!message) return;
+
+        fetch('/manager/api/send-message-to-agent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ route_id: routeId, message: message })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    input.value = '';
+                    loadDashboardMessages();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+    }
+
+    // Initialize dashboard when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        loadDashboardData();
+        loadDashboardRoutes();
+        initCharts();
+
+        // Refresh data every 10 seconds for real-time alerts
+        setInterval(loadDashboardData, 10000);
+    });
+</script>
+{% endblock %}
